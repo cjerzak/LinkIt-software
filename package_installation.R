@@ -14,5 +14,6 @@ try(file.remove(sprintf("./%s.pdf",package_name)),T); system(sprintf("R CMD Rd2p
 #Install package
 devtools::install_github(sprintf("cjerzak/%s-software/%s",package_name,package_name))
 
+
 #Load in package to environment  
 eval(parse(text=sprintf("library(%s)",package_name)))

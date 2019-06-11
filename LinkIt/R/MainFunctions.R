@@ -34,11 +34,6 @@
 #' 
 #' 
 
-load("LinkIt-software/data/bank_research.data")
-by.x='NM_LGL'
-by.y='comnam'
-
-
 trigram_index <- function(phrase,phrasename='phrase.no'){
   DT=data.table(phrase,phrase.no=1:length(phrase))
   t = DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))][
@@ -242,7 +237,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
   } 
   #x[grep(x$NM_LGL,pattern="comerica"),]
-  #y[grep(y$comnam,pattern="comerica"),]
+  #y[grep(y$comnam,pattern="comerica"),] 
   #directory[grep(directory$alias_name,pattern="comerica"),]
   z = merge(x  = x_red,
             y  = y_red,
