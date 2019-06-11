@@ -1,3 +1,4 @@
+if(T == F){ 
 library(data.table)
 library(readxl)
 library(tidyverse)
@@ -196,3 +197,4 @@ for (fname in dir(fr_y_path)){
         quote="",
         na.strings="--------",header=T)
 }
+} 
