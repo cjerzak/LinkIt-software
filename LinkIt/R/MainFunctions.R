@@ -32,26 +32,7 @@
 #' Set 'PreprocessingFuzzyThreshold' to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
 #' 
 #' 
-#' @export LinkIt
-
-trigram_index <- function(phrase,phrasename='phrase.no'){
-  DT=data.table(phrase,phrase.no=1:length(phrase))
-  t = DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))][
-      data.table(start_pos=1:100),
-      .(phrase,phrase.no,start_pos),
-      on="phrase.length>=start_pos",
-      nomatch=0,allow.cartesian=T][
-        order(phrase.no)]
-  t[,end_pos := pmin(start_pos+2,nchar(phrase))]
-  directory_trigrams= t[start_pos==1 | start_pos+2 == end_pos, 
-                      .(
-                        trigram=substr(phrase,start_pos,end_pos),
-                        phrase.no)]
-  setkey(directory_trigrams,trigram)
-  colnames(directory_trigrams) = c("trigram",phrasename)
-  return(directory_trigrams)
-}
-  
+#' @export
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                      fuzzy_step = T, force_unique = T, parallelize = T, 
@@ -243,4 +224,22 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
             y  = y_red,
             by = "ID_FUZZYMATCHED")
   return(  z   ) 
+}
+
+trigram_index <- function(phrase,phrasename='phrase.no'){
+  DT=data.table(phrase,phrase.no=1:length(phrase))
+  t = DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))][
+    data.table(start_pos=1:100),
+    .(phrase,phrase.no,start_pos),
+    on="phrase.length>=start_pos",
+    nomatch=0,allow.cartesian=T][
+      order(phrase.no)]
+  t[,end_pos := pmin(start_pos+2,nchar(phrase))]
+  directory_trigrams= t[start_pos==1 | start_pos+2 == end_pos, 
+                        .(
+                          trigram=substr(phrase,start_pos,end_pos),
+                          phrase.no)]
+  setkey(directory_trigrams,trigram)
+  colnames(directory_trigrams) = c("trigram",phrasename)
+  return(directory_trigrams)
 }
