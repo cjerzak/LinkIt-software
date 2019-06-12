@@ -49,6 +49,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(data.table,quietly=T)
   require(stringr)
   t0 = proc.time()
+  load("LinkIt_directory.Rdata")
   LT_d <- directory[,.(alias_name,alias_id,canonical_id)]
   #coerce to data.table
   x = as.data.table(x); y = as.data.table(y) 
@@ -242,4 +243,47 @@ trigram_index <- function(phrase,phrasename='phrase.no'){
   setkey(directory_trigrams,trigram)
   colnames(directory_trigrams) = c("trigram",phrasename)
   return(directory_trigrams)
+}
+
+
+FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T){
+  n_iters = max(nrow(x), nrow(y))
+  my_matched = matrix(NA,nrow = n_iters,ncol=4)
+  if(parallelize == T){ 
+    require("foreach",quietly=T); require("doMC",quietly=T)
+    ncl = detectCores()
+    split_list = round(seq(0.5,n_iters,length.out = ncl+1))
+    split_list = as.numeric(cut(1:n_iters,breaks=split_list))
+    split_list = sapply(1:ncl, function(as){ list(which(split_list ==as))})
+    if(length(unlist(split_list)) != n_iters){browser()}
+    cl<-registerDoMC(ncl);
+    loop_ <- foreach(outer_i = 1:ncl) %dopar% {
+      counter_ <- 0 
+      my_matched_inner = matrix(NA,nrow = length(split_list[[outer_i]]),ncol=4)
+      for(i in split_list[[outer_i]]){ 
+        counter_ = counter_ + 1 
+        #get the name we want to fuzzy match against the directory
+        my_entry = x[i][[by.x]]
+        #get the trigrams of this name
+        my_entry_trigrams = x_index[the.row==i,trigram]
+        
+        #find the set of entries in LT_d that have some common trigram
+        LT_entries = unique(LT_index[trigram %in% my_entry_trigrams,lt_d.row])
+        #calculate the nearest match according to string distance
+        match = unlist(LT_d[LT_entries,.(
+          my_entry = my_entry,
+          alias_name,
+          stringdist = stringdist(my_entry,alias_name,method="jw"),
+          canonical_id)][
+            order(stringdist)[1]
+            ])
+        my_matched_inner[counter_,] <- match
+      } 
+      colnames(my_matched_inner) <- names(match)
+      return( my_matched_inner )  
+    } 
+    my_matched = do.call(rbind,loop_)
+  } 
+
+  return( my_matched )
 }
