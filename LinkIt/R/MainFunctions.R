@@ -32,7 +32,7 @@
 #' Set 'PreprocessingFuzzyThreshold' to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
 #' 
 #' 
-#' 
+#' @export LinkIt
 
 trigram_index <- function(phrase,phrasename='phrase.no'){
   DT=data.table(phrase,phrase.no=1:length(phrase))

@@ -17,3 +17,7 @@ devtools::install_github(sprintf("cjerzak/%s-software/%s",package_name,package_n
 
 #Load in package to environment  
 eval(parse(text=sprintf("library(%s)",package_name)))
+
+#OR 
+devtools::install_github("cjerzak/LinkIt-software/LinkIt")
+library(LinkIt)
