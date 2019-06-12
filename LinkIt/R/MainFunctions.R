@@ -244,7 +244,8 @@ trigram_index <- function(phrase,phrasename='phrase.no'){
   return(directory_trigrams)
 }
 
-data("LinkIt_directory_trigrams", "LinkIt_directory_trigrams", envir=environment())
+data("LinkIt_directory_trigrams.Rdata", envir=environment())
+data("LinkIt_directory.Rdata", envir=environment())
 #.onLoad <- function(libname, pkgname) {
 #data("LinkIt_directory_trigrams.Rdata", "LinkIt_directory_trigrams.Rdata", package=pkgname, envir=parent.env(environment()))
 #}
