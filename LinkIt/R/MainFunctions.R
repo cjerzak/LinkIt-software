@@ -246,6 +246,10 @@ trigram_index <- function(phrase,phrasename='phrase.no'){
   return(directory_trigrams)
 }
 
+data("LinkIt_directory_trigrams.Rdata", "LinkIt_directory_trigrams.Rdata", package="LinkIt", envir=parent.env(environment()))
+#.onLoad <- function(libname, pkgname) {
+#data("LinkIt_directory_trigrams.Rdata", "LinkIt_directory_trigrams.Rdata", package=pkgname, envir=parent.env(environment()))
+#}
 
 FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T){
   n_iters = max(nrow(x), nrow(y))
