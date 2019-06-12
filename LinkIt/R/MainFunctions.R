@@ -49,8 +49,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(data.table,quietly=T)
   require(stringr)
   browser() 
-  load("./LinkIt_directory.Rdata")
-  load("./LinkIt_directory_trigrams.Rdata")
+  directory
   LT_d <- directory[,.(alias_name,alias_id,canonical_id)]
   #coerce to data.table
   x = as.data.table(x); y = as.data.table(y) 
@@ -246,7 +245,7 @@ trigram_index <- function(phrase,phrasename='phrase.no'){
   return(directory_trigrams)
 }
 
-data("LinkIt_directory_trigrams.Rdata", "LinkIt_directory_trigrams.Rdata", package="LinkIt", envir=parent.env(environment()))
+data("LinkIt_directory_trigrams", "LinkIt_directory_trigrams", envir=environment())
 #.onLoad <- function(libname, pkgname) {
 #data("LinkIt_directory_trigrams.Rdata", "LinkIt_directory_trigrams.Rdata", package=pkgname, envir=parent.env(environment()))
 #}
