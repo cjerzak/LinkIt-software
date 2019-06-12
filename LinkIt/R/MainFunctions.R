@@ -48,8 +48,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(stringdist)
   require(data.table,quietly=T)
   require(stringr)
-  t0 = proc.time()
-  load("LinkIt_directory.Rdata")
+  browser() 
+  load("./LinkIt_directory.Rdata")
+  load("./LinkIt_directory_trigrams.Rdata")
   LT_d <- directory[,.(alias_name,alias_id,canonical_id)]
   #coerce to data.table
   x = as.data.table(x); y = as.data.table(y) 
