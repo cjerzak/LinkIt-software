@@ -55,10 +55,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   load(temp[1]);load(temp[3])
   try(file.remove(temp),T) 
   
-  browser()
   directory = as.data.table(directory)
   directory_trigrams = as.data.table(directory_trigrams)
-  LT_d <- directory[,.(alias_name,alias_id,canonical_id)]
+  LT_d <- directory[,c("alias_name","alias_id","canonical_id")]
   #coerce to data.table
   x = as.data.table(x); y = as.data.table(y) 
   if(!is.null(by)){by.x <- by.y <- by}
