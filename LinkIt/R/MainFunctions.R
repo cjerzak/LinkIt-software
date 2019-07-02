@@ -227,8 +227,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   return(  z   ) 
 }
 
-load("LinkIt_directory_trigrams.Rdata", package="LinkIt", envir=environment())
-data(LinkIt_directory, package="LinkIt",envir=environment())
+##load("LinkIt_directory_trigrams.Rdata", package="LinkIt", envir=environment())
+#data(LinkIt_directory, package="LinkIt",envir=environment())
 #.onLoad <- function(libname, pkgname) {
 #data("LinkIt_directory_trigrams.Rdata", "LinkIt_directory_trigrams.Rdata", package=pkgname, envir=parent.env(environment()))
 #}
