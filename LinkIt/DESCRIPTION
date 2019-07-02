@@ -6,7 +6,7 @@ Description: An R package for estimating record linkage.
 Depends: R (>= 3.3.3)
 License: Creative Commons Attribution-Noncommercial-No Derivative Works 4.0, for academic use only.
 Encoding: UTF-8
-LazyData: no
+LazyData: true
 Maintainer: 'Connor Jerzak' <connor.jerzak@gmail.com>
 Imports: FNN
 RoxygenNote: 6.1.0

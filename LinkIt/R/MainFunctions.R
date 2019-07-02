@@ -49,7 +49,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(data.table,quietly=T)
   require(stringr)
   browser()
+  devtools::use_data(LinkedThem_directory,internal=T)
   directory<- as.data.table(LinkedThem_directory); rm(LinkedThem_directory)
+  list.dirs(,package="LinkIt")
   LT_d <- directory[,.(alias_name,alias_id,canonical_id)]
   #coerce to data.table
   x = as.data.table(x); y = as.data.table(y) 
