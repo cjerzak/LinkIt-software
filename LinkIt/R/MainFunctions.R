@@ -45,9 +45,11 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                     PreprocessingFuzzyThreshold=0.20) ){ 
   require(tm,quietly=T)
   require(fuzzyjoin,quietly=T)
-  require(stringdist)
+  require(stringdist, quietly = T) 
   require(data.table,quietly=T)
   require(stringr)
+  browser()
+  print(LinkIt_directory)
   LT_d <- directory[,.(alias_name,alias_id,canonical_id)]
   #coerce to data.table
   x = as.data.table(x); y = as.data.table(y) 
@@ -225,6 +227,12 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   return(  z   ) 
 }
 
+data(LinkIt_directory_trigrams, package="LinkIt", envir=environment())
+data(LinkIt_directory, package="LinkIt",envir=environment())
+#.onLoad <- function(libname, pkgname) {
+#data("LinkIt_directory_trigrams.Rdata", "LinkIt_directory_trigrams.Rdata", package=pkgname, envir=parent.env(environment()))
+#}
+
 trigram_index <- function(phrase,phrasename='phrase.no'){
   DT=data.table(phrase,phrase.no=1:length(phrase))
   t = DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))][
@@ -243,13 +251,19 @@ trigram_index <- function(phrase,phrasename='phrase.no'){
   return(directory_trigrams)
 }
 
-data(LinkIt_directory_trigrams, package="LinkIt", envir=environment())
-data(LinkIt_directory, package="LinkIt",envir=environment())
-#.onLoad <- function(libname, pkgname) {
-#data("LinkIt_directory_trigrams.Rdata", "LinkIt_directory_trigrams.Rdata", package=pkgname, envir=parent.env(environment()))
-#}
-
-FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T){
+FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T,
+                                  method = "jw", max_dist = 0.20){
+  #WARNING: X SHOULD ALWAYS BE THE LARGER SET 
+  if(nrow(x) < nrow(y)){stop("X SHOULD ALWAYS BE THE LARGER SET")}
+  if(by.x == by.y){
+    colnames(x)[colnames(x) == by.x] <- paste(by.x, ".x", sep = "")
+    colnames(y)[colnames(y) == by.y] <- paste(by.y, ".y", sep = "")
+    by.x = paste(by.x, ".x", sep = "");by.y = paste(by.y, ".y", sep = "")
+  }
+  x[[by.x]] <- tolower(x[[by.x]] )
+  y[[by.y]] <- tolower(y[[by.y]] )
+  x_index = trigram_index(x[[by.x]],"the.row")
+  y_index = trigram_index(y[[by.y]],'the.row')
   n_iters = max(nrow(x), nrow(y))
   my_matched = matrix(NA,nrow = n_iters,ncol=4)
   if(parallelize == T){ 
@@ -262,25 +276,26 @@ FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T){
     cl<-registerDoMC(ncl);
     loop_ <- foreach(outer_i = 1:ncl) %dopar% {
       counter_ <- 0 
-      my_matched_inner = matrix(NA,nrow = length(split_list[[outer_i]]),ncol=4)
+      my_matched_inner = matrix(NA,nrow = length(split_list[[outer_i]]),ncol=3)
       for(i in split_list[[outer_i]]){ 
         counter_ = counter_ + 1 
+        
         #get the name we want to fuzzy match against the directory
         my_entry = x[i][[by.x]]
         #get the trigrams of this name
         my_entry_trigrams = x_index[the.row==i,trigram]
         
         #find the set of entries in LT_d that have some common trigram
-        LT_entries = unique(LT_index[trigram %in% my_entry_trigrams,lt_d.row])
+        LT_entries = unique(x_index[trigram %in% my_entry_trigrams,the.row])
+        
         #calculate the nearest match according to string distance
-        match = unlist(LT_d[LT_entries,.(
+        match_ = eval(parse(text=sprintf("unlist(y[LT_entries,.(
           my_entry = my_entry,
-          alias_name,
-          stringdist = stringdist(my_entry,alias_name,method="jw"),
-          canonical_id)][
+          %s,
+          stringdist = stringdist(my_entry,%s,method=method))][
             order(stringdist)[1]
-            ])
-        my_matched_inner[counter_,] <- match
+            ])", by.y, by.y)))
+        my_matched_inner[counter_,] <- match_
       } 
       colnames(my_matched_inner) <- names(match)
       return( my_matched_inner )  
@@ -288,5 +303,11 @@ FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T){
     my_matched = do.call(rbind,loop_)
   } 
 
-  return( my_matched )
+  colnames(my_matched) <- c("MATCH_X", "MATCH_Y", "stringdist")
+  x = cbind(x,my_matched)
+  z = cbind(x, y[match(x[["MATCH_Y"]],y[[by.y]])])
+  z = z[as.numeric(as.character(z$stringdist))<max_dist,]
+  z = as.data.frame(z)[,!colnames(z) %in% colnames(my_matched)]
+
+  return( z )
 }
