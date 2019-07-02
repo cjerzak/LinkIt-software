@@ -49,7 +49,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(data.table,quietly=T)
   require(stringr)
   browser()
-  devtools::use_data(LinkedThem_directory,internal=T)
+  usethis::use_data(LinkedThem_directory,pkg= "LinkIt", internal=T)
   directory<- as.data.table(LinkedThem_directory); rm(LinkedThem_directory)
   list.dirs(,package="LinkIt")
   LT_d <- directory[,.(alias_name,alias_id,canonical_id)]
