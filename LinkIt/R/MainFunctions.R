@@ -48,10 +48,16 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(stringdist, quietly = T) 
   require(data.table,quietly=T)
   require(stringr)
-  browser()
-  usethis::use_data(LinkedThem_directory,pkg= "LinkIt", internal=T)
-  directory<- as.data.table(LinkedThem_directory); rm(LinkedThem_directory)
-  list.dirs(,package="LinkIt")
+
+  temp1 <- tempfile()
+  download.file("https://github.com/cjerzak/LinkIt-software/raw/master/directory_data.zip",temp1)
+  temp = unzip(temp1)
+  load(temp[1])
+  load(temp[3])
+  try(file.remove(temp),T) 
+  
+  directory = as.data.table(directory)
+  directory_trigrams = as.data.table(directory_trigrams)
   LT_d <- directory[,.(alias_name,alias_id,canonical_id)]
   #coerce to data.table
   x = as.data.table(x); y = as.data.table(y) 
