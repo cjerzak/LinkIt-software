@@ -49,7 +49,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(data.table,quietly=T)
   require(stringr)
   browser()
-  print(LinkIt_directory)
+  directory<- as.data.table(LinkedThem_directory); rm(LinkedThem_directory)
   LT_d <- directory[,.(alias_name,alias_id,canonical_id)]
   #coerce to data.table
   x = as.data.table(x); y = as.data.table(y) 
@@ -227,7 +227,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   return(  z   ) 
 }
 
-data(LinkIt_directory_trigrams, package="LinkIt", envir=environment())
+load("LinkIt_directory_trigrams.Rdata", package="LinkIt", envir=environment())
 data(LinkIt_directory, package="LinkIt",envir=environment())
 #.onLoad <- function(libname, pkgname) {
 #data("LinkIt_directory_trigrams.Rdata", "LinkIt_directory_trigrams.Rdata", package=pkgname, envir=parent.env(environment()))
