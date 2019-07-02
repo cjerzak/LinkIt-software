@@ -42,8 +42,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                     RemovePunctuation = T,
                                     x.stopwordcutoff = 0.1,
                                     y.stopwordcutoff = 0.1,
-                                    PreprocessingFuzzyThreshold=0.20,
-                                    browser = F) ){ 
+                                    PreprocessingFuzzyThreshold=0.20),
+                   browser = F){ 
   require(tm,quietly=T)
   require(fuzzyjoin,quietly=T)
   require(stringdist, quietly = T) 
