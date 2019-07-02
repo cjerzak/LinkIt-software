@@ -42,7 +42,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                     RemovePunctuation = T,
                                     x.stopwordcutoff = 0.1,
                                     y.stopwordcutoff = 0.1,
-                                    PreprocessingFuzzyThreshold=0.20) ){ 
+                                    PreprocessingFuzzyThreshold=0.20,
+                                    browser = F) ){ 
   require(tm,quietly=T)
   require(fuzzyjoin,quietly=T)
   require(stringdist, quietly = T) 
@@ -55,6 +56,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   load(temp[1]);load(temp[3])
   try(file.remove(temp),T) 
   
+  if(browser == T){browser()}
   directory = as.data.table(directory)
   directory_trigrams = as.data.table(directory_trigrams)
   LT_d <- directory[,c("alias_name","alias_id","canonical_id")]
