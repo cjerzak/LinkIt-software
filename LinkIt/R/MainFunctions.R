@@ -243,6 +243,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 #}
 
 trigram_index <- function(phrase,phrasename='phrase.no'){
+  require(data.table)
   DT=data.table(phrase,phrase.no=1:length(phrase))
   t = DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))][
     data.table(start_pos=1:100),
@@ -298,6 +299,7 @@ trigram_index <- function(phrase,phrasename='phrase.no'){
 #' @export
 FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T,
                                   method = "jw", max_dist = 0.20){
+  require(data.table)
   #WARNING: X SHOULD ALWAYS BE THE LARGER SET 
   if(nrow(x) < nrow(y)){stop("X SHOULD ALWAYS BE THE LARGER SET")}
   if(by.x == by.y){
