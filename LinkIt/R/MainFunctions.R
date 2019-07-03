@@ -49,7 +49,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(stringdist, quietly = T) 
   require(data.table,quietly=T)
   require(stringr)
-  require(plyr)
+  require(dplyr)
 
   temp1 <- tempfile()
   download.file("https://github.com/cjerzak/LinkIt-software/raw/master/directory_data.zip",temp1)
@@ -245,7 +245,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
 trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
   if(browser==T){browser()}
-  require(data.table); require(plyr)
+  require(data.table); require(dplyr)
   DT=data.table(phrase,phrase.no=1:length(phrase))
   t = DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))][
     data.table(start_pos=1:100),
@@ -302,7 +302,7 @@ trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
 FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T,
                                   method = "jw", max_dist = 0.20,browser=F){
   if(browser == T){browser()}
-  require(data.table);require(plyr)
+  require(data.table);require(dplyr)
   #WARNING: X SHOULD ALWAYS BE THE LARGER SET 
   if(nrow(x) < nrow(y)){stop("X SHOULD ALWAYS BE THE LARGER SET")}
   if(by.x == by.y){
