@@ -299,7 +299,8 @@ trigram_index <- function(phrase,phrasename='phrase.no'){
 #' 
 #' @export
 FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T,
-                                  method = "jw", max_dist = 0.20){
+                                  method = "jw", max_dist = 0.20,browser=F){
+  if(browser == T){browser()}
   require(data.table);require(plyr)
   #WARNING: X SHOULD ALWAYS BE THE LARGER SET 
   if(nrow(x) < nrow(y)){stop("X SHOULD ALWAYS BE THE LARGER SET")}
