@@ -243,7 +243,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 #data("LinkIt_directory_trigrams.Rdata", "LinkIt_directory_trigrams.Rdata", package=pkgname, envir=parent.env(environment()))
 #}
 
-trigram_index <- function(phrase,phrasename='phrase.no'){
+trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
+  if(browser=T){browser()}
   require(data.table); require(plyr)
   DT=data.table(phrase,phrase.no=1:length(phrase))
   t = DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))][
@@ -311,7 +312,7 @@ FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T,
   }
   x[[by.x]] <- tolower(x[[by.x]] )
   y[[by.y]] <- tolower(y[[by.y]] )
-  x_index = trigram_index(x[[by.x]],"the.row")
+  x_index = trigram_index(x[[by.x]],"the.row",browser=T)
   y_index = trigram_index(y[[by.y]],'the.row')
   n_iters = max(nrow(x), nrow(y))
   my_matched = matrix(NA,nrow = n_iters,ncol=4)
