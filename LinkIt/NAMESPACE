@@ -2,4 +2,3 @@
 
 export(FastFuzzyMatch_public)
 export(LinkIt)
-import("tm,stringdist,data.table,plyr,stringr")

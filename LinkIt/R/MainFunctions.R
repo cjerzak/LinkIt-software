@@ -31,7 +31,6 @@
 #' 
 #' Set 'PreprocessingFuzzyThreshold' to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
 #' 
-#' 
 #' @export
 
 
@@ -294,7 +293,7 @@ trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
 #' Set `ToLower' to TRUE to ignore case. 
 #' 
 #' Set 'PreprocessingFuzzyThreshold' to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
-#' 
+#'
 #' 
 #' @export
 FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T,
