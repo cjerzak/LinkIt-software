@@ -32,7 +32,6 @@
 #' Set 'PreprocessingFuzzyThreshold' to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
 #' 
 #' 
-#' @import tm,stringdist,data.table,plyr,stringr
 #' @export
 
 
