@@ -32,7 +32,9 @@
 #' Set 'PreprocessingFuzzyThreshold' to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
 #' 
 #' 
+#' @import tm,stringdist,data.table,plyr,stringr
 #' @export
+
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                      fuzzy_step = T, force_unique = T, parallelize = T, 
@@ -45,11 +47,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                     PreprocessingFuzzyThreshold=0.20),
                    browser = F){ 
   require(tm,quietly=T)
-  require(fuzzyjoin,quietly=T)
+  #require(fuzzyjoin,quietly=T)
   require(stringdist, quietly = T) 
-  require(data.table,quietly=T)
   require(stringr)
-  require(dplyr)
 
   temp1 <- tempfile()
   download.file("https://github.com/cjerzak/LinkIt-software/raw/master/directory_data.zip",temp1)
@@ -301,8 +301,8 @@ trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
 #' @export
 FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T,
                                   method = "jw", max_dist = 0.20,browser=F){
+  require(stringdist, quietly = T) 
   if(browser == T){browser()}
-  require(data.table);require(dplyr)
   #WARNING: X SHOULD ALWAYS BE THE LARGER SET 
   if(nrow(x) < nrow(y)){stop("X SHOULD ALWAYS BE THE LARGER SET")}
   if(by.x == by.y){
