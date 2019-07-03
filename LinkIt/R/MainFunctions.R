@@ -59,7 +59,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   if(browser == T){browser()}
   directory = as.data.table(directory)
   directory_trigrams = as.data.table(directory_trigrams)
-  LT_d <- directory[,c("alias_name","alias_id","canonical_id")]
+  LT_d <- directory[,.(alias_name,alias_id,canonical_id)]
   #coerce to data.table
   x = as.data.table(x); y = as.data.table(y) 
   if(!is.null(by)){by.x <- by.y <- by}
@@ -260,6 +260,42 @@ trigram_index <- function(phrase,phrasename='phrase.no'){
   return(directory_trigrams)
 }
 
+
+#' FastFuzzyMatch_public
+#' 
+#' Record linkage description. 
+#' 
+#' @usage 
+#' 
+#' FastFuzzyMatch_public(x,y,by,...)
+#' 
+#' @param x,y data frames to be merged  
+#' 
+#' @param by,by.x,by.y specifications of the columns used for merging. 
+#' 
+#' @param fuzzy_step A Boolean (T/F) indicating whether an additional pre-processing step
+#' with the LinkedThem database. Default option is TRUE. 
+#' 
+#' @param control A list specifying how to process the alias text. See ``Details''. 
+#' 
+#' @return z The merged data frame. 
+#' @export 
+#' 
+#' @details 
+#' LinkIt can automatically process the alias text for each dataset. In `Control', users can specify the following options. 
+#' 
+#' Set 'RemoveCommonWords' to TRUE to remove common words (those appearing in > 10\% of aliases).
+#' 
+#' Set `NormalizeSpaces' to TRUE to remove hanging whitespaces.
+#' 
+#' Set `RemovePunctuation' to TRUE to remove punctuation. 
+#' 
+#' Set `ToLower' to TRUE to ignore case. 
+#' 
+#' Set 'PreprocessingFuzzyThreshold' to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
+#' 
+#' 
+#' @export
 FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T,
                                   method = "jw", max_dist = 0.20){
   #WARNING: X SHOULD ALWAYS BE THE LARGER SET 
