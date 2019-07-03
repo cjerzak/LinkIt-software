@@ -295,6 +295,9 @@ trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
 #' Set 'PreprocessingFuzzyThreshold' to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
 #'
 #' 
+#' @import stringdist
+#' @import plyr
+#' 
 #' @export
 FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T,
                                   method = "jw", max_dist = 0.20,browser=F){
