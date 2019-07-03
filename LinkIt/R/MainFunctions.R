@@ -245,7 +245,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
 trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
   if(browser==T){browser()}
-  require(data.table); require(dplyr)
   DT=data.table(phrase,phrase.no=1:length(phrase))
   t = DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))][
     data.table(start_pos=1:100),
