@@ -243,6 +243,11 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
 trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
   if(browser==T){browser()}
+  
+  DT=data.table(phrase="a",phrase.no=1:length("a"))
+  DT
+  DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))]
+  
   DT=data.table(phrase,phrase.no=1:length(phrase))
   t = DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))][
     data.table(start_pos=1:100),
@@ -299,6 +304,7 @@ trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
 #' @import plyr
 #' 
 #' @export
+#' 
 FastFuzzyMatch_public <- function(x,y,by.x, by.y, parallelize = T,
                                   method = "jw", max_dist = 0.20,browser=F){
   require(stringdist, quietly = T) 
