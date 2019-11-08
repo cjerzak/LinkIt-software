@@ -241,8 +241,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       (eval(parse(text=sprintf("%s$ALIAS_FUZZYMATCHED <- %s_matched[,'alias_name']", key_,key_))))
       (eval(parse(text=sprintf("%s$ID_MATCH <- %s_matched[,'canonical_id']",key_,key_))))
       (eval(parse(text=sprintf("%s$stringdist <- %s_matched[,'stringdist']", key_,key_))))
-      (eval(parse(text=sprintf("%s_matched[,'stringdist'] <- f2n(%s_matched[,'stringdist'] ) ", key_,key_))))
-      (eval(parse(text=sprintf("%s_red = %s[f2n(%s_matched[,'stringdist'])<control$PreprocessingFuzzyThreshold,]", key_,key_,key_))))
+      (eval(parse(text=sprintf("%s_matched[,'stringdist'] <- f2n(%s_matched[,'stringdist']) ", key_,key_))))
+      (eval(parse(text=sprintf("%s_red = subset(%s,f2n(%s_matched[,'stringdist'])<control$PreprocessingFuzzyThreshold)", key_,key_,key_))))
       } 
     }
   }
