@@ -1,4 +1,4 @@
-# LinkedThem
+# LinkIt
 
 An R package 
 
