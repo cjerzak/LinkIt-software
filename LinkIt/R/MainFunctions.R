@@ -40,7 +40,7 @@
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                      fuzzy_step = T, force_unique = T, parallelize = T, 
-                     max.n.x = 5, max.n.y = 5, clustType = "markov",
+                     max.n.x = 5, max.n.y = 5, algorithm = "markov",
                      control = list(RemoveCommonWords = T, 
                                     ToLower = T,
                                     NormalizeSpaces = T,
@@ -60,7 +60,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   #if(!"directory_LinkIt" %in% ls(envir = globalenv())){
   if(T == T){ 
 
-  if(clustType == "ml"){ 
+  if(algorithm == "ml"){ 
     #myCon = url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/mlClust.Rdata?dl=0"); 
     library(glmnet);library(Matrix)
     { 
@@ -119,20 +119,20 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     }
   } 
     
-  #if(clustType == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/j9pfuoncuertmcy/directory_data_bipartite_thresh100.zip?dl=0",destfile = temp1)}
+  #if(algorithm == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/j9pfuoncuertmcy/directory_data_bipartite_thresh100.zip?dl=0",destfile = temp1)}
   
-  if(clustType != "ml"){ 
+  if(algorithm != "ml"){ 
     temp1 <- tempfile(pattern = "tmp14323512321423231960")
     #thanks to of https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
     #bipartite thres40 
-    if(clustType == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0",destfile = temp1)}
+    if(algorithm == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0",destfile = temp1)}
     
     #markov 
-    if(clustType == "markov"){download.file(sprintf("https://github.com/cjerzak/LinkIt-software/raw/master/directory_data_%s.zip",clustType),destfile = temp1)}
+    if(algorithm == "markov"){download.file(sprintf("https://github.com/cjerzak/LinkIt-software/raw/master/directory_data_%s.zip",algorithm),destfile = temp1)}
     temp = unzip(temp1,junkpaths=T,exdir = "tmp14323512321423231960")
-    #clustType in "markov", "bipartite" 
-    load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s_trigrams.Rdata",clustType) ))[1]])
-    load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s.Rdata",clustType) ))[1]])
+    #algorithm in "markov", "bipartite" 
+    load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s_trigrams.Rdata",algorithm) ))[1]])
+    load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s.Rdata",algorithm) ))[1]])
     try(file.remove(temp),T) 
     assign("directory_trigrams", as.data.table(directory_trigrams), envir=globalenv())
     if(control$ToLower == T){ directory_trigrams$trigram <- tolower(directory_trigrams$trigram) }
@@ -236,7 +236,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   
   #get matches 
   { 
-    if(clustType == "ml"){
+    if(algorithm == "ml"){
       y[[by.y]] <- stripFxn(y[[by.y]])
       x[[by.x]] <- stripFxn(x[[by.x]])
       
@@ -319,7 +319,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
         })
       }
     }
-    if(clustType != "ml"){
+    if(algorithm != "ml"){
       FastFuzzyMatch_internal <- function(key_){
       if(key_ == "x"){ n_iters = nrow(x)}; if(key_ == "y"){ n_iters = nrow(y)}
       my_matched = matrix(NA,nrow = 0,ncol=4)
@@ -426,7 +426,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   if(nrow(z_fuzzy) > 0){ 
     z_fuzzy$stringdist_fuzzy <- stringdist::stringdist(z_fuzzy[[by.x]],z_fuzzy[[by.y]],method = control$matchMethod)
     z = rbind.fill(z,z_fuzzy)[,c(colnames(z),"stringdist_fuzzy")]
-    if(clustType != "ml"){ 
+    if(algorithm != "ml"){ 
       z$metric_comparison = apply(cbind(z$stringdist.y,
                                         z$stringdist.x,
                                         z$stringdist_fuzzy),1,
