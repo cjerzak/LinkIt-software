@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 #' LinkIt
 #'
 #' Record linkage description.
@@ -32,49 +34,125 @@
 #' Set `RemovePunctuation' to TRUE to remove punctuation.
 #'
 #' Set `ToLower' to TRUE to ignore case.
-#'
-#' Set 'PreprocessingFuzzyThreshold' to some number between 0 and 1 to specify
-#' the threshold for the pre-processing fuzzy matching step.
-#'
+
 #' @export
 
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                      fuzzy_step = T, force_unique = T, parallelize = T, 
-                     max.n.x = 5, max.n.y = 5,
+                     max.n.x = 5, max.n.y = 5, clustType = "markov",
                      control = list(RemoveCommonWords = T, 
                                     ToLower = T,
                                     NormalizeSpaces = T,
                                     RemovePunctuation = T,
                                     x.stopwordcutoff = 0.1,
                                     y.stopwordcutoff = 0.1,
-                                    PreprocessingFuzzyThreshold=0.20,
-                                    FuzzyThreshold = 0.10),
+                                    FuzzyThreshold = 0.20,
+                                    matchMethod = "jaccard",
+                                    qgram = 2),
                    browser = F){ 
-  require(tm,quietly=T)
+  require(tm,quietly=F)
   #require(fuzzyjoin,quietly=T)
-  require(stringdist, quietly = T) 
+  require(data.table)
+  require(stringdist, quietly = F) 
   require(stringr)
   
-  if(!"directory_LinkIt" %in% ls(envir = globalenv())){ 
-  temp1 <- tempfile()
-  download.file("https://github.com/cjerzak/LinkIt-software/raw/master/directory_data.zip",temp1)
-  temp = unzip(temp1)
-  load(temp[1]);load(temp[3])
-  try(file.remove(temp),T) 
-  assign("directory_trigrams", as.data.table(directory_trigrams), envir=globalenv())
-  assign("directory_LinkIt", as.data.table(directory), envir=globalenv())
-  rm(directory)
+  #if(!"directory_LinkIt" %in% ls(envir = globalenv())){
+  if(T == T){ 
+
+  if(clustType == "ml"){ 
+    #myCon = url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/mlClust.Rdata?dl=0"); 
+    library(glmnet);library(Matrix)
+    { 
+        if(T == T){
+          myCon = try(url("https://dl.dropboxusercontent.com/s/hy8ilnv0u955oa8/getNumericalContrast.rds?dl=0"),T)
+          try(getNumericalContrast <- readRDS(myCon),T)
+          try(close(myCon),T);rm(myCon)
+          
+          myCon = try(url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/mlClust.Rdata?dl=0"),T)
+          try(load(myCon),F); close(myCon);rm(myCon)
+          
+          coefMat <- read.csv(file="./directory_data_ml/coefMat.csv")
+          tmp <- as.character(coefMat[,1]);coefMat <- as.data.frame(coefMat[,-1]); row.names(coefMat) <- tmp; coefMat <- as.matrix( coefMat )
+          idf_values <- read.csv("./directory_data_ml/idf_values.csv")
+          tmp <- idf_values[,1]; idf_values <- idf_values[,2];names(idf_values)<- tmp; rm(tmp)
+          idf_values <<- idf_values
+          median_idf <<- median(idf_values)
+          
+          library(randomForest)
+          try(myForest <<- myForest,T)
+          type_ <- "lasso"
+          predProbMatch <- function(strRef,strPool,
+                                    VECS_INPUT_w,HASH_INPUT_w,
+                                    VECS_INPUT_s,HASH_INPUT_s ){
+            contrastMat <- sapply(strPool,function(ze){list(try(getNumericalContrast(strRef, ze,
+                                                                                     wordVecs_w = VECS_INPUT_w, 
+                                                                                     hashTab_w = HASH_INPUT_w,
+                                                                                     wordVecs_s = VECS_INPUT_s, 
+                                                                                     hashTab_s = HASH_INPUT_s
+                                                                                     ),T))})
+            contrastMat <- do.call(rbind,contrastMat)
+            #if(length(strPool) > 1){contrastMat <- do.call(rbind,contrastMat)}
+            #contrastMat <- apply(contrastMat,2,function(ze){as.numeric(as.character(ze))})
+            if(type_ == "rforest"){ 
+              library(randomForest)
+              prob_ = try(predict(myForest,newdata = as.data.frame((contrastMat)),type="prob")[,2],T)
+            }
+            if(type_ == "lasso"){ 
+               prob_ = 1 / (1+exp( - c(cbind(1,contrastMat) %*% coefMat)  ) ) 
+            }
+            names(prob_) <- strPool
+            return( prob_ )  
+          }
+          
+          if(T == T){ 
+          stripFxn <- function(ze){ 
+            ze <- gsub(ze,pattern="\\)",replace="")
+            ze <- gsub(ze,pattern="\\(",replace="")
+            ze <- gsub(ze,pattern="\\.",replace="")
+            ze <- gsub(ze,pattern="\\,",replace="")
+            ze <- gsub(ze,pattern="\\-",replace="")
+            ze <- gsub(ze,pattern="\\*",replace="")
+          }
+          }
+        } 
+    }
+  } 
+    
+  #if(clustType == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/j9pfuoncuertmcy/directory_data_bipartite_thresh100.zip?dl=0",destfile = temp1)}
+  
+  if(clustType != "ml"){ 
+    temp1 <- tempfile(pattern = "tmp14323512321423231960")
+    #thanks to of https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
+    #bipartite thres40 
+    if(clustType == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0",destfile = temp1)}
+    
+    #markov 
+    if(clustType == "markov"){download.file(sprintf("https://github.com/cjerzak/LinkIt-software/raw/master/directory_data_%s.zip",clustType),destfile = temp1)}
+    temp = unzip(temp1,junkpaths=T,exdir = "tmp14323512321423231960")
+    #clustType in "markov", "bipartite" 
+    load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s_trigrams.Rdata",clustType) ))[1]])
+    load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s.Rdata",clustType) ))[1]])
+    try(file.remove(temp),T) 
+    assign("directory_trigrams", as.data.table(directory_trigrams), envir=globalenv())
+    if(control$ToLower == T){ directory_trigrams$trigram <- tolower(directory_trigrams$trigram) }
+    directory_trigrams = directory_trigrams[!duplicated(paste(directory_trigrams$trigram,
+                                                        directory_trigrams$alias_id,collapse="_")),]
+    print( sprintf("Directory length: %i",nrow( directory )  ))
+    assign("directory_LinkIt", as.data.table(directory), envir=globalenv())
+    rm(directory)
+    LT_d <- directory_LinkIt[,c("alias_name","canonical_id")]
+  } 
+  print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )  
   }
   if(browser == T){browser()}
-
+  
   x = cbind(1:nrow(x),x);colnames(x)[1] <- 'Xref__ID'
   y = cbind(1:nrow(y),y);colnames(y)[1] <- 'Yref__ID'
   by_x_orig = x[[by.x]] ; by_y_orig = y[[by.y]] 
   names(by_x_orig) <- x$Xref__ID;names(by_y_orig) <- y$Yref__ID
   y$UniversalMatchCol <- x$UniversalMatchCol <- NA 
   colnames_x_orig = colnames(x); colnames_y_orig = colnames(y)
-  LT_d <- directory_LinkIt[,c("alias_name","canonical_id")]
   
   #PREPROCESSING 
   x = as.data.table(x); y = as.data.table(y) 
@@ -82,7 +160,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   if(control$ToLower == T){
     set(x,NULL,by.x,tolower(x[[by.x]]))
     set(y,NULL,by.y,tolower(y[[by.y]]))
-    LT_d[,alias_name := tolower(alias_name)]
+    if("LT_d" %in% ls()){ LT_d[,alias_name := tolower(alias_name)]}
   }
   if(control$NormalizeSpaces == T){
     set(x,NULL,by.x,
@@ -95,12 +173,12 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
               y[[by.y]],
               pattern="\\s+",
               replace=' '))
-    LT_d[,alias_name := str_replace_all(alias_name,pattern="\\s+", replace = " ")]
+    if("LT_d" %in% ls()){LT_d[,alias_name := str_replace_all(alias_name,pattern="\\s+", replace = " ")]}
   }
   if(control$RemovePunctuation == T){
     set(x,NULL,by.x,str_replace_all(x[[by.x]],"\\p{P}",""))
     set(y,NULL,by.y,str_replace_all(y[[by.y]],"\\p{P}",""))
-    LT_d[,alias_name := str_replace_all(alias_name,"\\p{P}","")]
+    if("LT_d" %in% ls()){LT_d[,alias_name := str_replace_all(alias_name,"\\p{P}","")]}
   }
   if(control$RemoveCommonWords == T){
     #get a list of all the words as a data table
@@ -116,6 +194,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
     x.stop.words = x.words[,.(word.freq=.N/nrow(x)),word][word.freq > control$x.stopwordcutoff,word ]
     #now do the same for y
+    tstrsplit(y[[by.y]][1]," ")
     y.words = setDT(tstrsplit(y[[by.y]]," "),keep.rownames = T)
     y.words[,y.rowid:=.I]
     y.words = melt(y.words,id.vars='y.rowid',na.rm=T,variable.name = '_no',value.name='word')
@@ -137,41 +216,130 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   }
   
   #drop duplicates after pre-process 
-  LT_d = LT_d[!duplicated(alias_name) & trimws(alias_name)!='',]
-  LT_index = trigram_index(LT_d$alias_name,"lt_d.row")
-  
+  if("LT_d" %in% ls()){LT_d = LT_d[!duplicated(alias_name) & trimws(alias_name)!='',]}
+
   #specify ID_match for the exact/fuzzy matching 
   x$UniversalMatchCol <- as.character(x[[by.x]]); y$UniversalMatchCol = as.character( y[[by.y]] )  
+
+  #get trigrams 
+  if("LT_d" %in% ls()){LT_index = trigram_index(as.character(LT_d$alias_name),"lt_d.row")}
+  x_index  = trigram_index(x[[by.x]],"the.row")
+  y_index  = trigram_index(y[[by.y]],'the.row')
   
-  #exact matching as first step  
-  z_exact <- base::merge(x    = as.data.frame(x),
-                         y    = as.data.frame(y),
-                         by.x = "UniversalMatchCol",
-                         by.y = "UniversalMatchCol")
-  #if(length(z_exact$Xref__ID) > 0){ x = subset(x,x$Xref__ID %in% z_exact$Xref__ID) } 
-  #if(length(z_exact$Xref__ID) > 0){ y = subset(y,y$Yref__ID %in% z_exact$Yref__ID)  } 
-
-  x_index = trigram_index(x[[by.x]],"the.row")
-  y_index = trigram_index(y[[by.y]],'the.row')
-
-  if(fuzzy_step == T){ 
-    FastFuzzyMatch <- function(key_,parallelize = T){
-      if(key_ == "x"){ n_iters = nrow(x)}
-      if(key_ == "y"){ n_iters = nrow(y)}
-      my_matched = matrix(NA,nrow = n_iters,ncol=4)
+  #drop components of the big corpus which don't share any trigrams with any entries in {x,y}
+  tmp = unique(c(unique(as.character(x_index[,trigram])),unique(as.character(y_index[,trigram]))))
+  if("LT_d" %in% ls()){LT_index = LT_index[trigram %in% tmp,];rm(tmp)}
+  if("LT_d" %in% ls()){setkey(LT_index, trigram)}
+  
+  #FAST MATCH --- DOESN'T WORK WITH NAs 
+  `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
+  
+  #get matches 
+  { 
+    if(clustType == "ml"){
+      y[[by.y]] <- stripFxn(y[[by.y]])
+      x[[by.x]] <- stripFxn(x[[by.x]])
       
-      if(parallelize == T){ 
-        require("foreach",quietly=T); require("doMC",quietly=T)
-        ncl = detectCores()
+      tmp_ <- c(x[[by.x]],y[[by.y]])
+      tmp_ <- strsplit(tmp_,split=" ")
+      tmp_ <- unique( unlist(tmp_))
+
+      print("unfound terms")
+      print(head(tmp_[!tmp_ %in% names(idf_values)],25))
+      idf_values <- idf_values <- idf_values[which(names(idf_values) %in% tmp_)]
+      rm(tmp_)
+      
+      require(reticulate)
+      try(py_run_string(''), T)
+      py_run_string('import chars2vec')
+      py_run_string('c2v_model = chars2vec.load_model("eng_50")')
+      
+      #get w vecs 
+      { 
+      word_list <<- unique(c(unique(unlist(strsplit(y[[by.y]],split=" "))),
+                    unique(unlist(strsplit(x[[by.x]],split=" ")))))
+      py_run_string('vecs_w = c2v_model.vectorize_words(r.word_list)')
+      vecs_w <- py$vecs_w
+      HASHTAB_w <- 1:length(word_list); names(HASHTAB_w) <- word_list
+      } 
+      
+      #get string vecs 
+      { 
+        str_list <<- unique(c(unique(y[[by.y]]),unique(x[[by.x]])))
+        py_run_string('vecs_s = c2v_model.vectorize_words(r.str_list)')
+        vecs_s <- py$vecs_s
+        HASHTAB_s <- 1:length(str_list)
+        names(HASHTAB_s) <- str_list  
+      }
+      
+      ## TESTING FUNCTIONS 
+      if(T == F){ 
+        x_matched <- stripFxn(z_red_human$Name)
+        my_entry <- "apple inc"; key_ <- "x";i=1; match_pool <- y[[by.y]]
+        my_entry <- sample( x[[by.x]],1); key_ <- "x";i=1; match_pool <- y[[by.y]]
+        my_entry <- sample(x_matched,1); key_ <- "x";i=1; match_pool <- y[[by.y]]
+        #HASHTAB["apple"];HASHTAB["inc"];HASHTAB["computer"]
+        #matchProb_vec <- predProbMatch(strRef  = "apple inc", strPool = c("apple computer","abeple"),VECS_INPUT = vecs_all, HASH_INPUT = HASHTAB)
+        matchProb_vec <- predProbMatch(strRef  = my_entry, strPool = match_pool[1:100],
+                                       VECS_INPUT_w = vecs_w, HASH_INPUT_w = HASHTAB_w,
+                                       VECS_INPUT_s = vecs_s, HASH_INPUT_s = HASHTAB_s  )
+        my_entry;head(sort( matchProb_vec,decreasing=T))
+        z_red_human[z_red_human$Name %in% my_entry, ]
+        system.time(replicate(10000,{
+        wts_a <- fastmatch::fmatch(c("zuora","zynga"),names(idf_values));
+        wts_a <- idf_values[wts_a]
+        }))
+      }
+      
+      FastFuzzyMatch_internal <- function(key_){ 
+        if(key_ == "x"){ n_iters = nrow(x);match_pool <- y[[by.y]] }; 
+        if(key_ == "y"){ n_iters = nrow(y);match_pool <- x[[by.x]] }
+
+        {
+          require("doMC",quietly=T);library(foreach)#library(doSNOW);
+          ncl <- parallel::detectCores();
+          doMC::registerDoMC(ncl)
+        }        
+        my_matched <- as.data.frame(foreach(i = 1:n_iters, .combine=rbind) %dopar% {
+            if(i %% 10==0){write.csv(data.frame("Current Iters"=i,"Total Iters"=n_iters),file='~/downloads/PROGRESS_LINKIT_ml.csv')}
+            if(key_ == "x"){ my_entry = x[i][[by.x]]}
+            if(key_ == "y"){ my_entry = y[i][[by.y]]}
+            matchProb_vec <- try(predProbMatch(strRef     = my_entry, strPool = match_pool,
+                                           VECS_INPUT_w = vecs_w, HASH_INPUT_w = HASHTAB_w,
+                                           VECS_INPUT_s = vecs_s, HASH_INPUT_s = HASHTAB_s  ),T) 
+            probNonMatch <- try(1-matchProb_vec,T) 
+            match_indices <- which(probNonMatch < max(control$FuzzyThreshold))
+            match_ <- data.frame("my_entry"=NA, "alias_name"=NA,"stringdist"=NA, "canonical_id"= NA)
+            match_ <- match_[-1,]
+            if(length(match_indices) > 0){ 
+              match_ <- data.frame("my_entry"=my_entry, "alias_name"= match_pool[match_indices], 
+                           "stringdist"=as.vector(probNonMatch[match_indices]), "canonical_id"= NA)
+            }
+            return( match_ )
+        })
+      }
+    }
+    if(clustType != "ml"){
+      FastFuzzyMatch_internal <- function(key_){
+      if(key_ == "x"){ n_iters = nrow(x)}; if(key_ == "y"){ n_iters = nrow(y)}
+      my_matched = matrix(NA,nrow = 0,ncol=4)
+      colnames(my_matched) <- c("my_entry","alias_name","stringdist","canonical_id")
+      
+      maxDocSearchThres = 25
+      { 
+        require("foreach",quietly=T); require("doMC",quietly=T); library(parallel)
+        ncl = parallel::detectCores()
         split_list = round(seq(0.5,n_iters,length.out = ncl+1))
         split_list = as.numeric(cut(1:n_iters,breaks=split_list))
         split_list = sapply(1:ncl, function(as){ list(which(split_list ==as))})
         if(length(unlist(split_list)) != n_iters){browser()}
-        cl<-registerDoMC(ncl);
+        cl<-doMC::registerDoMC(ncl);
         loop_ <- foreach(outer_i = 1:ncl) %dopar% {
           counter_ <- 0 
-          my_matched_inner = matrix(NA,nrow = length(split_list[[outer_i]]),ncol=4)
+          my_matched_inner = matrix(NA,nrow = 0 ,ncol=4)
+          colnames(my_matched_inner) <- c("my_entry","alias_name","stringdist","canonical_id")# alias_name is match name 
           for(i in split_list[[outer_i]]){ 
+          if(i %% 1000==0){write.csv(data.frame("Current Iters"=i,"Total Iters"=n_iters),file='~/downloads/PROGRESS_LINKIT_clust.csv')}
           counter_ = counter_ + 1 
           if(key_ == "x"){ 
             #get the name we want to fuzzy match against the directory_LinkIt
@@ -184,129 +352,111 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
             my_entry_trigrams = y_index[the.row==i,trigram]
           } 
           
+          #WARNING: BIAS IN LONGER TRIGRAM KEYS??? 
           #find the set of entries in LT_d that have some common trigram
-          LT_entries = unique(LT_index[trigram %in% my_entry_trigrams,lt_d.row])
-          #calculate the nearest match according to string distance
-          match = unlist(LT_d[LT_entries,.(
+          #https://appsilon.com/fast-data-lookups-in-r-dplyr-vs-data-table/
+          LT_entries_tab = Rfast::Table(LT_index[.(my_entry_trigrams),lt_d.row, nomatch = 0L])
+          #MinNumSharedTriGrams = ceiling(length(my_entry_trigrams)*0.05);LT_entries_tab <- LT_entries_tab[LT_entries_tab>=MinNumSharedTriGrams]
+          takeTopProp = quantile(LT_entries_tab,max(1-maxDocSearchThres/length(LT_entries_tab),0.97));LT_entries_tab = LT_entries_tab[LT_entries_tab>=takeTopProp]
+          match_ = (LT_d[f2n(names(LT_entries_tab)),.(
             my_entry = my_entry,
             alias_name,
-            stringdist = stringdist(my_entry,alias_name,method="jw"),
+            stringdist = stringdist(my_entry,alias_name,method=control$matchMethod,q = control$qgram),
             canonical_id)][
-              order(stringdist)[1]
-              ],recursive = F,use.names=F)
-          my_matched_inner[counter_,] <- match
+              #order(stringdist)[1]
+              which(stringdist<=max(control$FuzzyThreshold))
+              ])
+          if(nrow(match_) > 0){ 
+            match_ = match_[!duplicated(match_$canonical_id),]
+            my_matched_inner <- rbind(my_matched_inner,match_)
+          } 
           } 
         colnames(my_matched_inner) <- c("my_entry", "alias_name", "stringdist", "canonical_id")
         return( my_matched_inner )  
         } 
         my_matched = do.call(rbind,loop_)
       } 
-      
-      if(parallelize == F){ 
-        for(i in 1:n_iters){ 
-          #this implementation may seem a little weird  but is fast 
-          if(key_ == "x"){ 
-            #get the name we want to fuzzy match against the directory_LinkIt
-            my_entry = x[i][[by.x]]
-            #get the trigrams of this name
-            my_entry_trigrams = x_index[the.row==i,trigram]
-          } 
-          if(key_ == "y"){ 
-            my_entry = y[i][[by.y]]
-            my_entry_trigrams = y_index[the.row==i,trigram]
-          } 
-          
-          #find the set of entries in LT_d that have some common trigram
-          LT_entries = unique(LT_index[trigram %in% my_entry_trigrams,lt_d.row])
-          #calculate the nearest match according to string distance
-          match = unlist(LT_d[LT_entries,.(
-            my_entry = my_entry,
-            alias_name,
-            stringdist = stringdist(my_entry,alias_name,method="jw"),
-            canonical_id)][
-              order(stringdist)[1]
-              ])
-          try_ = try(my_matched[i,] <- match,T)
-          my_matched[i,] <- match
-        } 
-        colnames(my_matched) <- names(match)
-      } 
-      return( my_matched )
-    }
-    
+      my_matched = my_matched[!duplicated(apply(cbind(my_matched[["my_entry"]],my_matched[["canonical_id"]]),1,function(ae){
+        paste(ae,collapse="_")})),]
+      return( as.data.frame(my_matched) )
+    }}
     {
       f2n <- function(.){as.numeric(as.character(.))}
-      for(key_ in c("x", "y")){ 
-      (eval(parse(text=sprintf("%s_matched = FastFuzzyMatch(key_ = '%s',parallelize=parallelize)", key_,key_))))
-      (eval(parse(text=sprintf("%s$ALIAS_FUZZYMATCHED <- %s_matched[,'alias_name']", key_,key_))))
-      (eval(parse(text=sprintf("%s$ID_MATCH <- %s_matched[,'canonical_id']",key_,key_))))
-      (eval(parse(text=sprintf("%s$stringdist <- %s_matched[,'stringdist']", key_,key_))))
-      (eval(parse(text=sprintf("%s_matched[,'stringdist'] <- f2n(%s_matched[,'stringdist']) ", key_,key_))))
-      (eval(parse(text=sprintf("%s_red = subset(%s,f2n(%s_matched[,'stringdist'])<control$PreprocessingFuzzyThreshold)", key_,key_,key_))))
+      keyNot_<-"y";key_ <- "x";if(nrow(x)>nrow(y)){key_ <- "y";keyNot_<-"x"}
+      {
+      eval(parse(text=sprintf("z_linkIt_orig <- z_linkIt <- FastFuzzyMatch_internal(key_ = '%s')",key_)))
+      #z_linkIt_orig <- z_linkIt
+      z_linkIt[,'stringdist'] <- f2n(z_linkIt[,'stringdist'])
+      eval(parse(text=sprintf("z_linkIt = dplyr::inner_join(as.data.frame(%s), as.data.frame(z_linkIt),by=c('%s'='my_entry'))", key_,eval(parse(text=sprintf("by.%s",key_)))   )))
+      eval(parse(text=sprintf("z_linkIt = dplyr::inner_join(as.data.frame(%s),as.data.frame(z_linkIt),by=c('%s'='alias_name'))", keyNot_, eval(parse(text=sprintf("by.%s",keyNot_))) )))
+      #eval(parse(text=sprintf("z_linkIt_=merge(as.data.frame(%s), as.data.frame(z_linkIt),by.x=by.%s,by.y='my_entry',all.y=T)", key_,key_,key_)))
+      #eval(parse(text=sprintf("z_linkIt=merge(as.data.frame(z_linkIt),as.data.frame(%s),by.x='alias_name',by.y=by.%s,all.x=T)", keyNot_,keyNot_,keyNot_)))
+      #(eval(parse(text=sprintf("%s=merge(as.data.frame(%s), as.data.frame(%s_matched),by.x=by.%s,by.y='my_entry',all=T)", key_,key_,key_,key_))))
+      #(eval(parse(text=sprintf("%s$ALIAS_FUZZYMATCHED <- %s_matched[,'alias_name']", key_,key_))))
+      #(eval(parse(text=sprintf("%s$ID_MATCH <- %s_matched[,'canonical_id']",key_,key_))))
+      #(eval(parse(text=sprintf("%s$stringdist <- %s_matched[,'stringdist']", key_,key_))))
       } 
     }
   }
   
-  #fuzzy match 
-  z_fuzzy = FastFuzzyMatch_public(x=x[,..colnames_x_orig], y=y[,..colnames_y_orig], 
-                                  by.x = "UniversalMatchCol", by.y = "UniversalMatchCol",
-                                  method = "jw", max_dist = control$FuzzyThreshold,browser=F)
-  colnames(z_fuzzy)[colnames(z_fuzzy) == "stringdist"] <- "stringdist_fuzzy"
+  colnames(z_linkIt)[colnames(z_linkIt) == "canonical_id"] <- "ID_MATCH"
 
   #linkit match 
-  z = as.data.frame(merge(x  = x_red,
-                          y  = y_red,
-                          by = "ID_MATCH"))
-  if(nrow(z_exact) > 0){ 
-    z_exact$stringdist_fuzzy <- 0  ; z = rbind.fill(z,z_exact)[,colnames(z)]
-  }
+  #z_linkIt = as.data.frame(merge(x  = x_linked,y  = y_linked,by = "ID_MATCH"))
+  #z_linkIt = z_linkIt[!is.na(z_linkIt$stringdist.x) & !is.na(z_linkIt$stringdist.y),]
+
+  #traditional fuzzy match 
+  z_fuzzy_full <- try(as.data.frame(FastFuzzyMatch(x_red,y_red,
+                                            by.x=by.x,by.y=by.y,
+                                            method = method_, max_dist = max(dist_seq),
+                                            q = qgram,browser=F)) ,T) 
+  justFuzzy_dists = z_fuzzy_full$stringdist
+  
+  z_list <- list(); counter <- 0
+  for(fuzzyThres in control$FuzzyThreshold){ 
+  counter = counter + 1 
+  
+  z = z_linkIt
+  { 
+    z_fuzzy <- z_fuzzy_full
+    if(length(justFuzzy_dists) > 0){ 
+      z_fuzzy <- try(z_fuzzy_full[justFuzzy_dists<=dist_seq[counter],],T)
+    }
+  } 
   if(nrow(z_fuzzy) > 0){ 
-    z = rbind.fill(z,z_fuzzy)[,colnames(z)]
+    z_fuzzy$stringdist_fuzzy <- stringdist::stringdist(z_fuzzy[[by.x]],z_fuzzy[[by.y]],method = control$matchMethod)
+    z = rbind.fill(z,z_fuzzy)[,c(colnames(z),"stringdist_fuzzy")]
+    if(clustType != "ml"){ 
+      z$metric_comparison = apply(cbind(z$stringdist.y,
+                                        z$stringdist.x,
+                                        z$stringdist_fuzzy),1,
+                                  function(zs){
+                                    max_yz = max(c(zs[1:2]),na.rm=T)
+                                    if(max_yz < 0){max_yz = 100}; min(max_yz,zs[3],na.rm=T)})
+      z = z[z$metric_comparison<control$FuzzyThreshold[counter],]
+    } 
   }
-  z =  z[!duplicated(  apply(z[,c("Xref__ID","Yref__ID")],1,function(x){paste(x,collapse="")})), ]
+  #z =  z[!duplicated(  apply(z[,c("Xref__ID","Yref__ID")],1,function(x){paste(x,collapse="")})), ]
   z  = z[,!colnames(z) %in% c("ID_MATCH.x", "ID_MATCH.y")]
   
   tab_x = table(z$Xref__ID)
-  z$x_metric_comparison = apply(cbind(z$stringdist.x,z$stringdist_fuzzy),1,function(zs){max(zs,na.rm=T)})
-  z$y_metric_comparison = apply(cbind(z$stringdist.y,z$stringdist_fuzzy),1,function(zs){max(zs,na.rm=T)})
-  z$metric_comparison = f2n(z$x_metric_comparison) + f2n(z$y_metric_comparison) 
   
-  #overmatched x's 
-  { 
-  overmatched_x = names(tab_x)[tab_x>max.n.x]
-  z_good = z[!z$Xref__ID %in% overmatched_x,]
-  z_bad = z[z$Xref__ID %in% overmatched_x,]
-  z_bad = do.call(rbind, sapply(overmatched_x,function(this_x){ 
-    z_bad_this_x_keep = z_bad[z_bad$Xref__ID %in% this_x,]
-    z_bad_this_x_keep = z_bad_this_x_keep[order(z_bad_this_x_keep$metric_comparison),]
-    z_bad_this_x_keep = z_bad_this_x_keep[1:max.n.x,]
-    return( list(z_bad_this_x_keep ))
-  } )) 
-  z = rbind(z_good,z_bad)
-  } 
-  
-  #overmatched y's 
-  { 
-    tab_y = table(z$Yref__ID)
-    overmatched_y = names(tab_y)[tab_y>max.n.y]
-    z_good = z[!z$Yref__ID %in% overmatched_y,]
-    z_bad = z[z$Yref__ID %in% overmatched_y,]
-    z_bad = do.call(rbind,sapply(overmatched_y,function(this_y){ 
-      z_bad_this_y_keep = z_bad[z_bad$Yref__ID %in% this_y,]
-      z_bad_this_y_keep = z_bad_this_y_keep[order(z_bad_this_y_keep$metric_comparison),]
-      z_bad_this_y_keep = z_bad_this_y_keep[1:max.n.y,]
-      return( list(z_bad_this_y_keep ))
-    } )) 
-    z = rbind(z_good,z_bad)
-  } 
+  #print(head(paste(z[[by.x]],z[[by.y]],sep="__")))
+  z = z[!duplicated(paste(z[[by.x]],  
+                          z[[by.y]],   
+                          sep="__")),]
 
-  z  = z [,colnames(z)[colnames(z) %in% c(colnames(x ),colnames(y ))]]
+  z  = z[,colnames(z)[colnames(z) %in% c(colnames(x ),colnames(y ))]]
   z = z[,!colnames(z) %in% "UniversalMatchCol"]
   
   #undo modifications to names for processing 
   z[[by.x]] <- by_x_orig[z$Xref__ID]
   z[[by.y]] <- by_y_orig[z$Yref__ID]
-  return(  z   ) 
+  z_list[[counter]] <- z
+  }
+  if(counter==1){z_list <- z_list[[1]]}
+
+  return(  z_list   ) 
 }
 
 trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
@@ -330,14 +480,84 @@ trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
   return(directory_trigrams)
 }
 
+getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){ 
+  x_ <- as.matrix(x_);y_ <- as.matrix(y_);z_ <- as.matrix(z_);z_truth_ <- as.matrix(z_truth_);
+  ResultsMat = as.data.frame( matrix(0,nrow=1,ncol=6) ) 
+  colnames(ResultsMat) <- c("TruePositive",##MatchShouldMatch_correct
+                            "FalsePositive",
+                            "FalsePositive_Type1",##MatchShouldNoMatch ("rejection of true")
+                            "FalsePositive_Type2",#MatchShouldMatch_incorrect ("nonrejection of false")
+                            "FalseNegative",#NoMatchShouldMatch_incorrect
+                            "TrueNegative")#NoMatchShouldNoMatch_correct
+  ReturnResults_list = list(ResultsMat_x=ResultsMat, ResultsMat_y=ResultsMat,savename=savename_);rm(ResultsMat)
+  for(o_ in 1:2){ 
+    if(o_ == 1){q_ = x_; by1_ = by.x_;by2_ = by.y_}
+    if(o_ == 2){q_ = y_;by1_ = by.y_;by2_ = by.x_}
+    q_vec = q_[,by1_]
+    z_vec = z_[,by1_]
+    z_truth_vec <- z_truth_[,by1_]
+    pool_ = unique(c(z_truth_[,by1_],q_[,by1_]))
+    for(i in 1:length(q_vec)){
+      if(i %% 100 == 0){print(i)} 
+      q_entry = q_vec[i]
+      z_red = z_[ z_vec %in% q_entry,]
+      z_truth_red = (z_truth_[z_truth_vec %in% q_entry,])
+      if(!class(z_red) %in% c('matrix', "data.frame")){z_red = t(z_red)}
+      if(!class(z_truth_red) %in% c('matrix', "data.frame")){z_truth_red = t(z_truth_red)}
+      z_truth_red = as.data.frame(z_truth_red)
+      z_red = as.data.frame(z_red)
+      if(nrow(z_truth_red) == 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"TrueNegative"]<-ReturnResults_list[[o_]][1,"TrueNegative"]+1 }
+      if(nrow(z_truth_red) > 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"FalseNegative"]<-ReturnResults_list[[o_]][1,"FalseNegative"]+1 }
+      if(nrow(z_truth_red) == 0 & nrow(z_red) > 0){
+        #ReturnResults_list[[o_]][1,"FalsePositive_Type1"]<-ReturnResults_list[[o_]][1,"FalsePositive_Type1"]+1
+        #ReturnResults_list[[o_]][1,"FalsePositive"]<-ReturnResults_list[[o_]][1,"FalsePositive"]+1
+        ReturnResults_list[[o_]][1,"FalsePositive_Type1"]<-ReturnResults_list[[o_]][1,"FalsePositive_Type1"]+nrow(z_red)
+        ReturnResults_list[[o_]][1,"FalsePositive"]<-ReturnResults_list[[o_]][1,"FalsePositive"]+nrow(z_red)
+      }
+      if(nrow(z_truth_red) > 0 & nrow(z_red) > 0){
+        ReturnResults_list[[o_]][1,"TruePositive"] = ReturnResults_list[[o_]][1,"TruePositive"] + sum(z_red[,by2_] %in% z_truth_red[,by2_])
+        ReturnResults_list[[o_]][1,"FalsePositive_Type2"] = ReturnResults_list[[o_]][1,"FalsePositive_Type2"] + (sum( !z_red[,by2_] %in% z_truth_red[,by2_])-1)
+        ReturnResults_list[[o_]][1,"FalsePositive"] = ReturnResults_list[[o_]][1,"FalsePositive"] + (sum( !z_red[,by2_] %in% z_truth_red[,by2_])-1)
+        #ReturnResults_list[[o_]][1,"FalsePositive_Type2"] = ReturnResults_list[[o_]][1,"FalsePositive_Type2"] + 1*(sum( !z_red[,by2_] %in% z_truth_red[,by2_])>0)
+        #ReturnResults_list[[o_]][1,"FalsePositive"] = ReturnResults_list[[o_]][1,"FalsePositive"] + 1*(sum( !z_red[,by2_] %in% z_truth_red[,by2_])>0)
+      }
+    }
+    if(T == F){ 
+    for(i in 1:length(pool_)){
+      if(i %% 100 == 0){print(i)} 
+      pool_entry = pool_[i]
+      q_entry = q_[q_[,by1_] %in% pool_entry,by1_]
+      z_red = z_[z_[,by1_] %in% pool_entry,]
+      z_truth_red = (z_truth_[z_truth_[,by1_] %in% pool_entry,])
+      if(!class(z_red) %in% c('matrix', "data.frame")){z_red = t(z_red)}
+      if(!class(z_truth_red) %in% c('matrix', "data.frame")){z_truth_red = t(z_truth_red)}
+      z_truth_red = as.data.frame(z_truth_red)
+      z_red = as.data.frame(z_red)
+      if(nrow(z_truth_red) == 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"TrueNegative"]<-ReturnResults_list[[o_]][1,"TrueNegative"]+1 }
+      if(nrow(z_truth_red) > 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"FalseNegative"]<-ReturnResults_list[[o_]][1,"FalseNegative"]+1 }
+      if(nrow(z_truth_red) == 0 & nrow(z_red) > 0){
+        ReturnResults_list[[o_]][1,"FalsePositive_Type1"]<-ReturnResults_list[[o_]][1,"FalsePositive_Type1"]+1
+        ReturnResults_list[[o_]][1,"FalsePositive"]<-ReturnResults_list[[o_]][1,"FalsePositive"]+1
+      }
+      if(nrow(z_truth_red) > 0 & nrow(z_red) > 0){
+        ReturnResults_list[[o_]][1,"TruePositive"] = ReturnResults_list[[o_]][1,"TruePositive"] + sum(z_red[,by2_] %in% z_truth_red[,by2_])
+        ReturnResults_list[[o_]][1,"FalsePositive_Type2"] = ReturnResults_list[[o_]][1,"FalsePositive_Type2"] + 1*(sum( !z_red[,by2_] %in% z_truth_red[,by2_])>0)
+        ReturnResults_list[[o_]][1,"FalsePositive"] = ReturnResults_list[[o_]][1,"FalsePositive"] + 1*(sum( !z_red[,by2_] %in% z_truth_red[,by2_])>0)
+      }
+    }
+    }
+  }
+  return( ReturnResults_list)  
+} 
 
-#' FastFuzzyMatch_public
+
+#' FastFuzzyMatch
 #' 
 #' Record linkage description. 
 #' 
 #' @usage 
 #' 
-#' FastFuzzyMatch_public(x,y,by,...)
+#' FastFuzzyMatch(x,y,by,...)
 #' 
 #' @param x,y data frames to be merged  
 #' 
@@ -370,65 +590,91 @@ trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
 #' 
 #' @export
 #' 
-FastFuzzyMatch_public <- function(x,y,by.x, by.y, return_stringdist = T, 
-                                  method = "jw", max_dist = 0.20,browser=F){
+
+FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T, 
+                                  qgram =2, method = "jw", max_dist = 0.20,browser=F){
   require(stringdist, quietly = T) 
   if(browser == T){browser()}
   #WARNING: X SHOULD ALWAYS BE THE LARGER SET 
-  if(nrow(x) < nrow(y)){stop("X SHOULD ALWAYS BE THE LARGER SET")}
+  if(nrow(y)>nrow(x)){ 
+    x_old = x; y_old = y;by.y_old = by.y;by.x_old =by.x
+    x <- y_old;by.x = by.y_old
+    y <- x_old;by.y = by.x_old
+    rm(x_old,y_old)
+  }
   if(by.x == by.y){
     colnames(x)[colnames(x) == by.x] <- paste(by.x, ".x", sep = "")
     colnames(y)[colnames(y) == by.y] <- paste(by.y, ".y", sep = "")
     by.x = paste(by.x, ".x", sep = "");by.y = paste(by.y, ".y", sep = "")
   }
+  y = as.data.table(y)
+  x = as.data.table(x)
   x[[by.x]] <- tolower(x[[by.x]] )
   y[[by.y]] <- tolower(y[[by.y]] )
   x_index = trigram_index(x[[by.x]],"the.row")
   y_index = trigram_index(y[[by.y]],"the.row")
   n_iters = max(nrow(x), nrow(y))
-  my_matched = matrix(NA,nrow = n_iters,ncol=4)
   { 
     require("foreach",quietly=T); require("doMC",quietly=T)
-    ncl = detectCores()
+    ncl = parallel::detectCores()
     split_list = round(seq(0.5,n_iters,length.out = ncl+1))
     split_list = as.numeric(cut(1:n_iters,breaks=split_list))
     split_list = sapply(1:ncl, function(as){ list(which(split_list ==as))})
-    if(length(unlist(split_list)) != n_iters){browser()}
-    cl<-registerDoMC(ncl);
+    f2n = function(.){as.numeric(as.character(.))}
+    cl<-doMC::registerDoMC(ncl);
     loop_ <- foreach(outer_i = 1:ncl) %dopar% {
-      counter_ <- 0 
-      my_matched_inner = matrix(NA,nrow = length(split_list[[outer_i]]),ncol=3)
+      counter_ <- 0  
+      my_matched_inner = matrix(NA,nrow = 0,ncol=3)
+      colnames(my_matched_inner) <- c("my_entry",by.y,"stringdist")
       for(i in split_list[[outer_i]]){ 
         counter_ = counter_ + 1 
         
         #get the name we want to fuzzy match against the directory_LinkIt
-        my_entry = x[i][[by.x]]
+        my_entry = x[i,][[by.x]]
         #get the trigrams of this name
         my_entry_trigrams = x_index[the.row==i,trigram]
         
         #find the set of entries in LT_d that have some common trigram
-        LT_entries = unique(x_index[trigram %in% my_entry_trigrams,the.row])
-        
+        #LT_entries = unique(x_index[trigram %in% my_entry_trigrams,the.row])
+        if(nrow(y)<1e5){ 
+          LT_entries = 1:nrow(y)
+        } 
+        if(nrow(y)>1e5){ 
+          MinNumSharedTriGrams = ceiling(length(my_entry_trigrams)*0.1)
+          LT_entries = table(y_index[trigram %in% my_entry_trigrams,the.row])
+          LT_entries = f2n(names(LT_entries[LT_entries>=MinNumSharedTriGrams]))
+        } 
+
         #calculate the nearest match accordfng to string distance
-        eval(parse(text=sprintf("match_ = unlist(y[LT_entries,.(
-            my_entry = my_entry,%s,
-            stringdist = stringdist(my_entry,%s,method=method))][
-              order(stringdist)[1] ])", by.y,by.y) ) ) 
-        my_matched_inner[counter_,] <- match_
+        match_ = sprintf("y[LT_entries,.(
+          my_entry=my_entry,%s,
+          stringdist = stringdist(my_entry,%s,method=method,q = qgram))]",by.y,by.y)
+        match_ = eval(parse(text=match_))
+        if(nrow(match_)>0){
+          #match_ = match_[,.(which(stringdist<=max_dist)) ]
+          match_ = as.data.frame(match_)
+          match_ = match_[which(match_$stringdist<=max_dist),]
+          my_matched_inner = rbind(my_matched_inner,match_)
+        }
       } 
-      colnames(my_matched_inner) <- names(match)
       return( my_matched_inner )  
     } 
     my_matched = do.call(rbind,loop_)
   } 
-
-  colnames(my_matched) <- c("MATCH_X", "MATCH_Y", "stringdist")
-  x = cbind(x,my_matched)
-  z = cbind(x, y[match(x[["MATCH_Y"]],y[[by.y]])])
-  z = z[as.numeric(as.character(z$stringdist))<max_dist,]
-  if(return_stringdist == F){ z = as.data.frame(z)[,!colnames(z) %in% colnames(my_matched)]}
-  if(return_stringdist == T){ z = as.data.frame(z)[,!colnames(z) %in% colnames(my_matched) | colnames(z) == "stringdist"]}
-
-  return( z )
-}
+  colnames(my_matched)[1] <- by.x
+  myMatched = merge(as.data.frame(x), as.data.frame(my_matched),
+                  by.x=by.x,by.y=by.x,all.x = F,all.y=T)
+  myMatched = merge(as.data.frame(y), as.data.frame(myMatched),
+                    by.x=by.y,by.y=by.y,all.x = F,all.y=T)
+  myMatched = as.data.frame( myMatched )
+  #colnames(my_matched) <- c("MATCH_X", "MATCH_Y", "stringdist")
+  #x = cbind(x,my_matched)
+  #z = cbind(x, y[match(x[["MATCH_Y"]],y[[by.y]])])
+  #zfinal = z[as.numeric(as.character(z$stringdist))<=max_dist,]
+  #if(return_stringdist == F){ zfinal = as.data.frame(zfinal)[,!colnames(zfinal) %in% colnames(my_matched)]}
+  #if(return_stringdist == T){zfinal = as.data.frame(zfinal)[,!colnames(zfinal) %in% colnames(my_matched) | colnames(zfinal) == "stringdist"]}
+  myMatched = myMatched[!duplicated(paste(myMatched[[by.x]],
+                          myMatched[[by.y]],sep="__")),]
+  return( myMatched )
+  }
 
