@@ -11,10 +11,11 @@ LinkIt(x,y,by,...)
 
 \item{by, by.x, by.y}{specifications of the columns used for merging.}
 
-\item{fuzzy_step}{A Boolean (T/F) indicating whether an additional pre-processing step
-with the LinkedThem database. Default option is TRUE.}
+\item{fuzzy_step}{A Boolean (T/F) indicating whether an additional
+pre-processing step with the LinkedThem database. Default option is TRUE.}
 
-\item{control}{A list specifying how to process the alias text. See ``Details''.}
+\item{control}{A list specifying how to process the alias text. See
+``Details''.}
 }
 \value{
 z The merged data frame.
@@ -23,15 +24,15 @@ z The merged data frame.
 Record linkage description.
 }
 \details{
-LinkIt can automatically process the alias text for each dataset. In `Control', users can specify the following options. 
+LinkIt can automatically process the alias text for each dataset. In
+`Control', users can specify the following options.
 
-Set 'RemoveCommonWords' to TRUE to remove common words (those appearing in > 10\% of aliases).
+Set 'RemoveCommonWords' to TRUE to remove common words (those appearing in >
+10\% of aliases).
 
 Set `NormalizeSpaces' to TRUE to remove hanging whitespaces.
 
-Set `RemovePunctuation' to TRUE to remove punctuation. 
+Set `RemovePunctuation' to TRUE to remove punctuation.
 
-Set `ToLower' to TRUE to ignore case. 
-
-Set 'PreprocessingFuzzyThreshold' to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step.
+Set `ToLower' to TRUE to ignore case.
 }
