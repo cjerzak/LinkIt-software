@@ -35,6 +35,7 @@
 #' @export
 #' 
 #' @importFrom data.table ":="
+#' @import Rfast, doMC
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                      algorithm = "markov",
@@ -55,12 +56,10 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(stringdist, quietly = F) 
   require(stringr)
   
-  #if(!"directory_LinkIt" %in% ls(envir = globalenv())){
   if(algorithm == "ml"){ 
     #myCon = url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/mlClust.Rdata?dl=0"); 
     library(glmnet);library(Matrix)
     { 
-        if(T == T){
           myCon = try(url("https://dl.dropboxusercontent.com/s/hy8ilnv0u955oa8/getNumericalContrast.rds?dl=0"),T)
           try(getNumericalContrast <- readRDS(myCon),T)
           try(close(myCon),T);rm(myCon)
@@ -110,11 +109,16 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
             ze <- gsub(ze,pattern="\\*",replace="")
           }
           }
-        } 
+        
     }
   } 
   #if(algorithm == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/j9pfuoncuertmcy/directory_data_bipartite_thresh100.zip?dl=0",destfile = temp1)}
-  if(algorithm != "ml"){ 
+  redownload <- T
+  if("directory_LinkIt" %in% ls(envir = globalenv())){
+    if(algorithm == "markov" & nrow(directory_LinkIt) == 264320){redownload <- F}
+    if(algorithm == "bipartite" & nrow(directory_LinkIt) != 264320){redownload <- F}
+  }
+  if(redownload){ 
     temp1 <- tempfile(pattern = "tmp14323512321423231960")
     #thanks to of https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
     if(algorithm == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0",destfile = temp1)}
