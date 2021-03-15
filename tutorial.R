@@ -11,6 +11,8 @@ x_mat <- data.frame("xname"=c("apple computers","j p morgan"),
 y_mat <- data.frame("yname"=c("apple inc","jp morgan"),
                     "ydat"=c(rnorm(2)))
 
+fuzzyThres <- 0.2
+
 z_LinkIt_markov <- LinkIt(x=as.data.table(x_mat), y=as.data.table(y_mat),
                           by.x = "xname",by.y="yname",
                           openBrowser=F,
@@ -19,22 +21,23 @@ z_LinkIt_markov <- LinkIt(x=as.data.table(x_mat), y=as.data.table(y_mat),
                                          ToLower = T,
                                          NormalizeSpaces = T,
                                          RemovePunctuation = F,
-                                         FuzzyThreshold = 0.10,
+                                         FuzzyThreshold = fuzzyThres,
                                          matchMethod = "jw",
                                          qgram = 2))
 
 z_LinkIt_bipartite <- LinkIt(x=as.data.table(x_mat), y=as.data.table(y_mat),
                               by.x = "xname",by.y="yname",
-                              fuzzy_step = T, openBrowser=F,
-                              algorithm = "bipartite", returnDiagnostics = T,
+                             algorithm = "bipartite", openBrowser=F,
+                              returnDiagnostics = T,
                               control = list(RemoveCommonWords = F,
                                              ToLower = T,
                                              NormalizeSpaces = T,
                                              RemovePunctuation = F,
-                                             FuzzyThreshold = 0.10,
+                                             FuzzyThreshold = fuzzyThres,
                                              matchMethod = "jw",
                                              qgram = 2))
 
+#for machine learning clustering: 
 #must do install.packages("reticulate")
 #from terminal: pip install tensorflow 
 #pip install keras
@@ -42,20 +45,19 @@ z_LinkIt_bipartite <- LinkIt(x=as.data.table(x_mat), y=as.data.table(y_mat),
 #make sure pip is using same python version as recitulate 
 z_LinkIt_ml <- LinkIt(x=as.data.table(x_mat), y=as.data.table(y_mat),
                        by.x = "xname",by.y="yname",
-                       fuzzy_step = T, openBrowser=F,
-                       algorithm = "ml", returnDiagnostics = T,
+                      algorithm = "ml", openBrowser=F, returnDiagnostics = T,
                         control = list(RemoveCommonWords = F,
                                        ToLower = T,
                                        NormalizeSpaces = T,
                                        RemovePunctuation = F,
-                                       FuzzyThreshold = 0.10,
+                                       FuzzyThreshold = fuzzyThres,
                                        matchMethod = "jw",
                                        qgram = 2))
 
 z_fuzzy     <-      FastFuzzyMatch(x_mat,y_mat,
                                    by.x="xname", by.y= "yname",
-                                   method = "jw", max_dist = 0.1,
-                                   q = 2,browser=F)  
+                                   method = "jw", max_dist = fuzzyThres,
+                                   q = 2,openBrowser=F)  
 
 
 

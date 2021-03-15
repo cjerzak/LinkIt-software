@@ -493,8 +493,8 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){
       q_entry = q_vec[i]
       z_red = z_[ z_vec %in% q_entry,]
       z_truth_red = (z_truth_[z_truth_vec %in% q_entry,])
-      if(!class(z_red) %in% c('matrix', "data.frame")){z_red = t(z_red)}
-      if(!class(z_truth_red) %in% c('matrix', "data.frame")){z_truth_red = t(z_truth_red)}
+      if(any(!class(z_red) %in% c('matrix', "data.frame"))){z_red = t(z_red)}
+      if(any(!class(z_truth_red) %in% c('matrix', "data.frame"))){z_truth_red = t(z_truth_red)}
       z_truth_red = as.data.frame(z_truth_red)
       z_red = as.data.frame(z_red)
       if(nrow(z_truth_red) == 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"TrueNegative"]<-ReturnResults_list[[o_]][1,"TrueNegative"]+1 }
