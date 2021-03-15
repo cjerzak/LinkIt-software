@@ -14,9 +14,6 @@
 #'
 #' @param by,by.x,by.y specifications of the columns used for merging.
 #'
-#' @param fuzzy_step A Boolean (T/F) indicating whether an additional
-#'   pre-processing step with the LinkedThem database. Default option is TRUE.
-#'
 #' @param control A list specifying how to process the alias text. See
 #'   ``Details''.
 #'
@@ -40,7 +37,7 @@
 #' @importFrom data.table ":="
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
-                     fuzzy_step = T, force_unique = T, parallelize = T, 
+                     force_unique = T, parallelize = T, 
                      max.n.x = 5, max.n.y = 5, algorithm = "markov",
                      control = list(RemoveCommonWords = T, 
                                     ToLower = T,
@@ -438,8 +435,10 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                           z[[by.y]],   
                           sep="__")),]
 
-  z  = z[,colnames(z)[colnames(z) %in% c(colnames(x ),colnames(y ))]]
-  z = z[,!colnames(z) %in% "UniversalMatchCol"]
+  if(returnDiagnostics == F){ 
+    z  = z[,colnames(z)[colnames(z) %in% c(colnames(x ),colnames(y ))]]
+    z = z[,!colnames(z) %in% "UniversalMatchCol"]
+  }
   
   #undo modifications to names for processing 
   z[[by.x]] <- by_x_orig[z$Xref__ID]
@@ -555,8 +554,6 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){
 #' 
 #' @param by,by.x,by.y specifications of the columns used for merging. 
 #' 
-#' @param fuzzy_step A Boolean (T/F) indicating whether an additional pre-processing step
-#' with the LinkedThem database. Default option is TRUE. 
 #' 
 #' @param control A list specifying how to process the alias text. See ``Details''. 
 #' 
