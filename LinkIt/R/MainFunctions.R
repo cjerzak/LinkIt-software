@@ -391,15 +391,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
         eval(parse(text=sprintf("z_linkIt = dplyr::inner_join(as.data.frame(%s), as.data.frame(z_linkIt),by=c('%s'='my_entry'))", key_,eval(parse(text=sprintf("by.%s",key_)))   )))
         eval(parse(text=sprintf("z_linkIt = dplyr::inner_join(as.data.frame(%s),as.data.frame(z_linkIt),by=c('%s'='alias_name'))", keyNot_, eval(parse(text=sprintf("by.%s",keyNot_))) )))
       }
-      #eval(parse(text=sprintf("z_linkIt_=merge(as.data.frame(%s), as.data.frame(z_linkIt),by.x=by.%s,by.y='my_entry',all.y=T)", key_,key_,key_)))
-      #eval(parse(text=sprintf("z_linkIt=merge(as.data.frame(z_linkIt),as.data.frame(%s),by.x='alias_name',by.y=by.%s,all.x=T)", keyNot_,keyNot_,keyNot_)))
-      #(eval(parse(text=sprintf("%s=merge(as.data.frame(%s), as.data.frame(%s_matched),by.x=by.%s,by.y='my_entry',all=T)", key_,key_,key_,key_))))
-      #(eval(parse(text=sprintf("%s$ALIAS_FUZZYMATCHED <- %s_matched[,'alias_name']", key_,key_))))
-      #(eval(parse(text=sprintf("%s$ID_MATCH <- %s_matched[,'canonical_id']",key_,key_))))
-      #(eval(parse(text=sprintf("%s$stringdist <- %s_matched[,'stringdist']", key_,key_))))
       } 
     }
-  }
   
   colnames(z_linkIt)[colnames(z_linkIt) == "canonical_id"] <- "ID_MATCH"
 
@@ -410,7 +403,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                             max_dist = max(control$FuzzyThreshold),
                                             q = control$qgram)) ,T) 
   justFuzzy_dists = z_fuzzy_full$stringdist
-  colnames(z_fuzzy_full)[colnames(z_fuzzy_full) == "stringdist"] <- "stringdist_fuzzyOnly"
+  colnames(z_fuzzy_full)[colnames(z_fuzzy_full) == "stringdist"] <- "stringdist_fuzzy"
   
   z_list <- list(); counter <- 0
   for(fuzzyThres in control$FuzzyThreshold){ 
@@ -424,15 +417,14 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     }
   } 
   if(nrow(z_fuzzy) > 0){ 
-    z_fuzzy$stringdist_fuzzy <- stringdist::stringdist(z_fuzzy[[by.x]],z_fuzzy[[by.y]],method = control$matchMethod)
     z = rbind.fill(z,z_fuzzy)[,c(colnames(z),"stringdist_fuzzy")]
     if(algorithm != "ml"){ 
       z$minDist = apply(cbind(z$stringdist.x,
                               z$stringdist.y,
                                         z$stringdist_fuzzy),1,
                                   function(zs){
-                                    max_yz = max(c(zs[1:2]),na.rm=T)
-                                    if(max_yz < 0){max_yz = 100}; min(max_yz,zs[3],na.rm=T)})
+                                    max_yz = suppressWarnings(max(c(zs[1:2]),na.rm=T))
+                                    if(max_yz < 0){max_yz = 1000}; min(c(max_yz,zs[3]),na.rm=T)})
       z = z[z$minDist<control$FuzzyThreshold[counter],]
     } 
   }
