@@ -45,7 +45,7 @@ z_LinkIt_bipartite <- LinkIt(x=as.data.table(x_mat), y=as.data.table(y_mat),
 #make sure pip is using same python version as recitulate 
 z_LinkIt_ml <- LinkIt(x=as.data.table(x_mat), y=as.data.table(y_mat),
                        by.x = "xname",by.y="yname",
-                      algorithm = "ml", openBrowser=F, returnDiagnostics = T,
+                      algorithm = "ml", openBrowser=T, returnDiagnostics = T,
                         control = list(RemoveCommonWords = F,
                                        ToLower = T,
                                        NormalizeSpaces = T,

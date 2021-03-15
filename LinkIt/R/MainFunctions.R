@@ -106,7 +106,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
             ze <- gsub(ze,pattern="\\-",replace="")
             ze <- gsub(ze,pattern="\\*",replace="")
           }
-        
     }
   } 
   redownload <- T
