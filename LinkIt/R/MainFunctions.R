@@ -58,7 +58,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   
   if(algorithm == "ml"){ 
     #myCon = url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/mlClust.Rdata?dl=0"); 
-    library(glmnet);library(Matrix)
     { 
           myCon = try(url("https://dl.dropboxusercontent.com/s/hy8ilnv0u955oa8/getNumericalContrast.rds?dl=0"),T)
           try(getNumericalContrast <- readRDS(myCon),T)
@@ -74,8 +73,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           idf_values <<- idf_values
           median_idf <<- median(idf_values)
           
-          library(randomForest)
           try(myForest <<- myForest,T); type_ <- "lasso"
+          if(type_=="randomForest"){library(randomForest)}
+          if(type_=="lasso"){library(glmnet)}
           predProbMatch <- function(strRef,strPool,
                                     VECS_INPUT_w,HASH_INPUT_w,
                                     VECS_INPUT_s,HASH_INPUT_s ){
@@ -98,8 +98,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
             names(prob_) <- strPool
             return( prob_ )  
           }
-          
-          if(T == T){ 
           stripFxn <- function(ze){ 
             ze <- gsub(ze,pattern="\\)",replace="")
             ze <- gsub(ze,pattern="\\(",replace="")
@@ -108,17 +106,15 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
             ze <- gsub(ze,pattern="\\-",replace="")
             ze <- gsub(ze,pattern="\\*",replace="")
           }
-          }
         
     }
   } 
-  #if(algorithm == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/j9pfuoncuertmcy/directory_data_bipartite_thresh100.zip?dl=0",destfile = temp1)}
   redownload <- T
   if("directory_LinkIt" %in% ls(envir = globalenv())){
     if(algorithm == "markov" & nrow(directory_LinkIt) == 264320){redownload <- F}
     if(algorithm == "bipartite" & nrow(directory_LinkIt) != 264320){redownload <- F}
   }
-  if(redownload){ 
+  if(redownload & algorithm != "ml"){ 
     temp1 <- tempfile(pattern = "tmp14323512321423231960")
     #thanks to of https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
     if(algorithm == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0",destfile = temp1)}
