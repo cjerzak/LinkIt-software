@@ -38,7 +38,7 @@
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                      algorithm = "markov",
-                     returnDiagnostics = F,
+                    returnDiagnostics = F,
                      control = list(RemoveCommonWords = T, 
                                     ToLower = T,
                                     NormalizeSpaces = T,
