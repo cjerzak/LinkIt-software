@@ -16,7 +16,7 @@ y_mat <- data.frame("yname"=c("apple inc","jp morgan"),
 
 z_red_LinkIt <- LinkIt(x=x_mat, y=y_mat,
                        by.x = "xname",by.y="yname",
-                       fuzzy_step = T, openBrowser=F,
+                       fuzzy_step = T, browser=T,#openBrowser=F,
                        algorithm = "ml",
                         control = list(RemoveCommonWords = F,
                                        ToLower = T,
