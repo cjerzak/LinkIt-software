@@ -35,7 +35,8 @@
 #' @export
 #' 
 #' @importFrom data.table ":="
-#' @import Rfast, doMC
+#' @import Rfast
+#' @import doMC
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                      algorithm = "markov",

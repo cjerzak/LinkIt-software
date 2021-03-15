@@ -2,7 +2,7 @@
 
 export(FastFuzzyMatch)
 export(LinkIt)
-import("Rfast,")
+import(Rfast)
 import(doMC)
 import(plyr)
 import(stringdist)
