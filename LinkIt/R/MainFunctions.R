@@ -409,6 +409,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   justFuzzy_dists = z_fuzzy_full$stringdist
   
   z_list <- list(); counter <- 0
+  browser()
   for(fuzzyThres in control$FuzzyThreshold){ 
   counter = counter + 1 
   
