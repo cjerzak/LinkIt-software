@@ -118,7 +118,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     temp1 <- tempfile(pattern = "tmp14323512321423231960")
     #thanks to of https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
     if(algorithm == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0",destfile = temp1)}
-    if(algorithm == "markov"){download.file(sprintf("https://github.com/cjerzak/LinkIt-software/raw/master/directory_data_%s.zip",algorithm),destfile = temp1)}
+    if(algorithm == "markov"){download.file("https://dl.dropboxusercontent.com/s/nel34sc4cfpo3uy/LinkIt_directory_markov.Rdata?dl=0",destfile = temp1)}
     temp = unzip(temp1,junkpaths=T,exdir = "tmp14323512321423231960")
     load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s_trigrams.Rdata",algorithm) ))[1]])
     load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s.Rdata",algorithm) ))[1]])
