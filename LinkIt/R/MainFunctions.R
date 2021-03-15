@@ -401,11 +401,11 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   #z_linkIt = z_linkIt[!is.na(z_linkIt$stringdist.x) & !is.na(z_linkIt$stringdist.y),]
 
   #traditional fuzzy match 
-  browser()
   z_fuzzy_full <- try(as.data.frame(FastFuzzyMatch(x,y,
                                             by.x=by.x,  by.y=by.y,
-                                            method = method_, max_dist = max(dist_seq),
-                                            q = qgram)) ,T) 
+                                            method = control$matchMethod, 
+                                            max_dist = max(control$FuzzyThreshold),
+                                            q = control$qgram)) ,T) 
   justFuzzy_dists = z_fuzzy_full$stringdist
   
   z_list <- list(); counter <- 0
