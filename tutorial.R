@@ -1,7 +1,7 @@
 
 #https://github.com/cjerzak/LinkIt-software.git
 options(timeout=9999999); devtools::install_github("cjerzak/LinkIt-software/LinkIt/",
-                      force = T, quiet = F,build_vignettes=F,dependencies = T)
+                      force = F, quiet = F,build_vignettes=F,dependencies = T)
 library(LinkIt)
 library(data.table)
 
