@@ -398,10 +398,11 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   #z_linkIt = z_linkIt[!is.na(z_linkIt$stringdist.x) & !is.na(z_linkIt$stringdist.y),]
 
   #traditional fuzzy match 
-  z_fuzzy_full <- try(as.data.frame(FastFuzzyMatch(x_red,y_red,
-                                            by.x=by.x,by.y=by.y,
+  browser()
+  z_fuzzy_full <- try(as.data.frame(FastFuzzyMatch(x,y,
+                                            by.x=by.x,  by.y=by.y,
                                             method = method_, max_dist = max(dist_seq),
-                                            q = qgram,openBrowser=F)) ,T) 
+                                            q = qgram)) ,T) 
   justFuzzy_dists = z_fuzzy_full$stringdist
   
   z_list <- list(); counter <- 0
@@ -583,9 +584,9 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){
 #' 
 
 FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T, 
-                                  qgram =2, method = "jw", max_dist = 0.20,browser=F){
+                                  qgram =2, method = "jw", max_dist = 0.20,openBrowser=F){
   require(stringdist, quietly = T) 
-  if(browser == T){browser()}
+  if(openBrowser == T){browser()}
   #WARNING: X SHOULD ALWAYS BE THE LARGER SET 
   if(nrow(y)>nrow(x)){ 
     x_old = x; y_old = y;by.y_old = by.y;by.x_old =by.x
@@ -607,10 +608,13 @@ FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T,
   n_iters = max(nrow(x), nrow(y))
   { 
     require("foreach",quietly=T); require("doMC",quietly=T)
-    ncl = parallel::detectCores()
-    split_list = round(seq(0.5,n_iters,length.out = ncl+1))
-    split_list = as.numeric(cut(1:n_iters,breaks=split_list))
-    split_list = sapply(1:ncl, function(as){ list(which(split_list ==as))})
+    ncl <- 1; split_list <- list(1:n_iters)
+    if(n_iters > 50){ 
+      ncl = parallel::detectCores(
+      split_list = round(seq(0.5,n_iters,length.out = ncl+1))
+      split_list = as.numeric(cut(1:n_iters,breaks=split_list))
+      split_list = sapply(1:ncl, function(as){ list(which(split_list ==as))})
+    }
     f2n = function(.){as.numeric(as.character(.))}
     cl<-doMC::registerDoMC(ncl);
     loop_ <- foreach(outer_i = 1:ncl) %dopar% {
