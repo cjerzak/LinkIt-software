@@ -11,9 +11,6 @@ FastFuzzyMatch(x,y,by,...)
 
 \item{by, by.x, by.y}{specifications of the columns used for merging.}
 
-\item{fuzzy_step}{A Boolean (T/F) indicating whether an additional pre-processing step
-with the LinkedThem database. Default option is TRUE.}
-
 \item{control}{A list specifying how to process the alias text. See ``Details''.}
 }
 \value{
