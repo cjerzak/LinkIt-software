@@ -36,6 +36,9 @@
 #' Set `ToLower' to TRUE to ignore case.
 
 #' @export
+#' 
+#' @importFrom data.table ":="
+NULL
 
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
@@ -169,7 +172,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   if(control$RemovePunctuation == T){
     set(x,NULL,by.x,str_replace_all(x[[by.x]],"\\p{P}",""))
     set(y,NULL,by.y,str_replace_all(y[[by.y]],"\\p{P}",""))
-    if("LT_d" %in% ls()){LT_d[["alias_name"]] <- str_replace_all(LT_d[["alias_name"]],"\\p{P}","")}
+    if("LT_d" %in% ls()){LT_d[["alias_name"]] <- str_replace_all(LT_d[["alias_name"]],"\\p{P}","")  }
   }
   if(control$RemoveCommonWords == T){
     #get a list of all the words as a data table
