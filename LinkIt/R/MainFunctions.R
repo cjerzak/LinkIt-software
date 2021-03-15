@@ -50,7 +50,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                     FuzzyThreshold = 0.20,
                                     matchMethod = "jaccard",
                                     qgram = 2),
-                   browser = F){ 
+                   openBrowser = F){ 
   require(tm,quietly=F)
   #require(fuzzyjoin,quietly=T)
   require(data.table)
@@ -82,13 +82,13 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           predProbMatch <- function(strRef,strPool,
                                     VECS_INPUT_w,HASH_INPUT_w,
                                     VECS_INPUT_s,HASH_INPUT_s ){
-            contrastMat <- sapply(strPool,function(ze){list(try(getNumericalContrast(strRef, ze,
+          contrastMat <- sapply(strPool,function(ze){list(try(getNumericalContrast(strRef, ze,
                                                                                      wordVecs_w = VECS_INPUT_w, 
                                                                                      hashTab_w = HASH_INPUT_w,
                                                                                      wordVecs_s = VECS_INPUT_s, 
                                                                                      hashTab_s = HASH_INPUT_s
                                                                                      ),T))})
-            contrastMat <- do.call(rbind,contrastMat)
+          contrastMat <- do.call(rbind,contrastMat)
             #if(length(strPool) > 1){contrastMat <- do.call(rbind,contrastMat)}
             #contrastMat <- apply(contrastMat,2,function(ze){as.numeric(as.character(ze))})
             if(type_ == "rforest"){ 
@@ -129,14 +129,14 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     if(control$ToLower == T){ directory_trigrams$trigram <- tolower(directory_trigrams$trigram) }
     directory_trigrams = directory_trigrams[!duplicated(paste(directory_trigrams$trigram,
                                                         directory_trigrams$alias_id,collapse="_")),]
-    print( sprintf("Directory length: %i",nrow( directory )  ))
+    print( sprintf("Directory size: %i aliases",nrow( directory )  ))
     assign("directory_LinkIt", as.data.table(directory), envir=globalenv())
     rm(directory)
     LT_d <- directory_LinkIt[,c("alias_name","canonical_id")]
   } 
-  print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )  
+  #print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )  
   
-  if(browser == T){browser()}
+  if(openBrowser == T){browser()}
   
   x = cbind(1:nrow(x),x);colnames(x)[1] <- 'Xref__ID'
   y = cbind(1:nrow(y),y);colnames(y)[1] <- 'Yref__ID'
@@ -151,7 +151,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   if(control$ToLower == T){
     set(x,NULL,by.x,tolower(x[[by.x]]))
     set(y,NULL,by.y,tolower(y[[by.y]]))
-    if("LT_d" %in% ls()){ LT_d[,alias_name := tolower(alias_name)]}
+    if("LT_d" %in% ls()){ LT_d[["alias_name"]] <- tolower(LT_d[["alias_name"]] ) }
   }
   if(control$NormalizeSpaces == T){
     set(x,NULL,by.x,
@@ -164,12 +164,12 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
               y[[by.y]],
               pattern="\\s+",
               replace=' '))
-    if("LT_d" %in% ls()){LT_d[,alias_name := str_replace_all(alias_name,pattern="\\s+", replace = " ")]}
+    if("LT_d" %in% ls()){LT_d[["alias_name"]] <- str_replace_all(LT_d[["alias_name"]],pattern="\\s+", replace = " ") }
   }
   if(control$RemovePunctuation == T){
     set(x,NULL,by.x,str_replace_all(x[[by.x]],"\\p{P}",""))
     set(y,NULL,by.y,str_replace_all(y[[by.y]],"\\p{P}",""))
-    if("LT_d" %in% ls()){LT_d[,alias_name := str_replace_all(alias_name,"\\p{P}","")]}
+    if("LT_d" %in% ls()){LT_d[["alias_name"]] <- str_replace_all(LT_d[["alias_name"]],"\\p{P}","")]}
   }
   if(control$RemoveCommonWords == T){
     #get a list of all the words as a data table
@@ -400,7 +400,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z_fuzzy_full <- try(as.data.frame(FastFuzzyMatch(x_red,y_red,
                                             by.x=by.x,by.y=by.y,
                                             method = method_, max_dist = max(dist_seq),
-                                            q = qgram,browser=F)) ,T) 
+                                            q = qgram,openBrowser=F)) ,T) 
   justFuzzy_dists = z_fuzzy_full$stringdist
   
   z_list <- list(); counter <- 0
@@ -432,7 +432,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   
   tab_x = table(z$Xref__ID)
   
-  #print(head(paste(z[[by.x]],z[[by.y]],sep="__")))
   z = z[!duplicated(paste(z[[by.x]],  
                           z[[by.y]],   
                           sep="__")),]

@@ -1,8 +1,10 @@
 
 #https://github.com/cjerzak/LinkIt-software.git
+options(timeout=9999999)
 devtools::install_github("cjerzak/LinkIt-software/LinkIt/",
                       force = T, quiet = F,build_vignettes=F,dependencies = F)
 
+library(data.table)
 library(LinkIt)
 
 x_mat <- data.frame("xname"=c("apple computers","j p morgan"),
@@ -14,7 +16,8 @@ y_mat <- data.frame("yname"=c("apple inc","jp morgan"),
 
 z_red_LinkIt <- LinkIt(x=x_mat, y=y_mat,
                        by.x = "xname",by.y="yname",
-                       fuzzy_step = T,algorithm = "ml",
+                       fuzzy_step = T, openBrowser=F,
+                       algorithm = "bipartite",
                         control = list(RemoveCommonWords = F,
                                        ToLower = T,
                                        NormalizeSpaces = T,
@@ -22,12 +25,11 @@ z_red_LinkIt <- LinkIt(x=x_mat, y=y_mat,
                                        x.stopwordcutoff = .9,
                                        y.stopwordcutoff = .9,
                                        FuzzyThreshold = 0.10,
-                                       matchMethod = "", #must be clust
-                                       qgram = 2),
-                        browser= T)
+                                       matchMethod = "jw",
+                                       qgram = 2))
 
-
-z_red_fuzzy_FULL <- FastFuzzyMatch(x_red,y_red,
-                                   by.x=by.x, by.y=by.y,
-                                   method = method_, max_dist = max(dist_seq),
-                                   q = qgram,browser=F)  
+z_red_fuzzy_FULL <- FastFuzzyMatch(x_red,
+                                   y_red,
+                                   by.x="xname", by.y= "yname",
+                                   method = "jw", max_dist = 0.1,
+                                   q = 2,browser=F)  
