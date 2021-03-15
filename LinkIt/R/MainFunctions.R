@@ -38,8 +38,6 @@
 #' @export
 #' 
 #' @importFrom data.table ":="
-NULL
-
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                      fuzzy_step = T, force_unique = T, parallelize = T, 
