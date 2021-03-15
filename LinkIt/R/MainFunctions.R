@@ -377,14 +377,21 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     }}
     {
       f2n <- function(.){as.numeric(as.character(.))}
-      keyNot_<-"y";key_ <- "x";if(nrow(x)>nrow(y)){key_ <- "y";keyNot_<-"x"}
-      {
-      if(openBrowser == T){browser()}
-      eval(parse(text=sprintf("z_linkIt_orig <- z_linkIt <- FastFuzzyMatch_internal(key_ = '%s')",key_)))
-      #z_linkIt_orig <- z_linkIt
-      z_linkIt[,'stringdist'] <- f2n(z_linkIt[,'stringdist'])
-      eval(parse(text=sprintf("z_linkIt = dplyr::inner_join(as.data.frame(%s), as.data.frame(z_linkIt),by=c('%s'='my_entry'))", key_,eval(parse(text=sprintf("by.%s",key_)))   )))
-      eval(parse(text=sprintf("z_linkIt = dplyr::inner_join(as.data.frame(%s),as.data.frame(z_linkIt),by=c('%s'='alias_name'))", keyNot_, eval(parse(text=sprintf("by.%s",keyNot_))) )))
+      if(algorithm != "ml"){
+        xLinked <- FastFuzzyMatch_internal(key_ = 'x')
+        yLinked <- FastFuzzyMatch_internal(key_ = 'y')
+        xLinked = merge(as.data.frame(x),as.data.frame(xLinked),by.x=by.x,by.y="my_entry")
+        yLinked = merge(as.data.frame(y),as.data.frame(yLinked),by.x=by.y,by.y="my_entry")
+        z_linkIt <- merge(xLinked,yLinked,by="canonical_id",all=F)
+      }
+      if(algorithm == "ml"){
+        keyNot_<-"y";key_ <- "x";if(nrow(x)>nrow(y)){key_ <- "y";keyNot_<-"x"}
+        eval(parse(text=sprintf("z_linkIt <- FastFuzzyMatch_internal(key_ = '%s')",key_)))
+        z_linkIt[,'stringdist'] <- f2n(z_linkIt[,'stringdist'])
+        z_linkIt$stringdist.x <- z_linkIt$stringdist.y <- z_linkIt$stringdist
+        eval(parse(text=sprintf("z_linkIt = dplyr::inner_join(as.data.frame(%s), as.data.frame(z_linkIt),by=c('%s'='my_entry'))", key_,eval(parse(text=sprintf("by.%s",key_)))   )))
+        eval(parse(text=sprintf("z_linkIt = dplyr::inner_join(as.data.frame(%s),as.data.frame(z_linkIt),by=c('%s'='alias_name'))", keyNot_, eval(parse(text=sprintf("by.%s",keyNot_))) )))
+      }
       #eval(parse(text=sprintf("z_linkIt_=merge(as.data.frame(%s), as.data.frame(z_linkIt),by.x=by.%s,by.y='my_entry',all.y=T)", key_,key_,key_)))
       #eval(parse(text=sprintf("z_linkIt=merge(as.data.frame(z_linkIt),as.data.frame(%s),by.x='alias_name',by.y=by.%s,all.x=T)", keyNot_,keyNot_,keyNot_)))
       #(eval(parse(text=sprintf("%s=merge(as.data.frame(%s), as.data.frame(%s_matched),by.x=by.%s,by.y='my_entry',all=T)", key_,key_,key_,key_))))
@@ -421,14 +428,13 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     z_fuzzy$stringdist_fuzzy <- stringdist::stringdist(z_fuzzy[[by.x]],z_fuzzy[[by.y]],method = control$matchMethod)
     z = rbind.fill(z,z_fuzzy)[,c(colnames(z),"stringdist_fuzzy")]
     if(algorithm != "ml"){ 
-      browser()
-      z$metric_comparison = apply(cbind(z$stringdist.y,
-                                        z$stringdist.x,
+      z$minDist = apply(cbind(z$stringdist.x,
+                              z$stringdist.y,
                                         z$stringdist_fuzzy),1,
                                   function(zs){
                                     max_yz = max(c(zs[1:2]),na.rm=T)
                                     if(max_yz < 0){max_yz = 100}; min(max_yz,zs[3],na.rm=T)})
-      z = z[z$metric_comparison<control$FuzzyThreshold[counter],]
+      z = z[z$minDist<control$FuzzyThreshold[counter],]
     } 
   }
   z =  z[!duplicated(  apply(z[,c("Xref__ID","Yref__ID")],1,function(x){paste(x,collapse="")})), ]
