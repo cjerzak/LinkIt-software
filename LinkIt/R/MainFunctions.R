@@ -320,10 +320,13 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       maxDocSearchThres = 25
       { 
         require("foreach",quietly=T); require("doMC",quietly=T); library(parallel)
-        ncl = parallel::detectCores()
-        split_list = round(seq(0.5,n_iters,length.out = ncl+1))
-        split_list = as.numeric(cut(1:n_iters,breaks=split_list))
-        split_list = sapply(1:ncl, function(as){ list(which(split_list ==as))})
+        ncl <- 1; split_list <- list(1:n_iters)
+        if(n_iters>50){
+          ncl = parallel::detectCores()
+          split_list = round(seq(0.5,n_iters,length.out = ncl+1))
+          split_list = as.numeric(cut(1:n_iters,breaks=split_list))
+          split_list = sapply(1:ncl, function(as){ list(which(split_list ==as))})
+        }
         if(length(unlist(split_list)) != n_iters){browser()}
         cl<-doMC::registerDoMC(ncl);
         loop_ <- foreach(outer_i = 1:ncl) %dopar% {
@@ -609,8 +612,8 @@ FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T,
   { 
     require("foreach",quietly=T); require("doMC",quietly=T)
     ncl <- 1; split_list <- list(1:n_iters)
-    if(n_iters > 50){ 
-      ncl = parallel::detectCores(
+    if(n_iters>50){ 
+      ncl = parallel::detectCores()
       split_list = round(seq(0.5,n_iters,length.out = ncl+1))
       split_list = as.numeric(cut(1:n_iters,breaks=split_list))
       split_list = sapply(1:ncl, function(as){ list(which(split_list ==as))})

@@ -18,7 +18,7 @@ dt[, y := 1]
 
 z_red_LinkIt <- LinkIt(x=as.data.table(x_mat), y=as.data.table(y_mat),
                        by.x = "xname",by.y="yname",
-                       fuzzy_step = T, openBrowser=T,
+                       fuzzy_step = T, openBrowser=F,
                        algorithm = "ml",
                         control = list(RemoveCommonWords = F,
                                        ToLower = T,
