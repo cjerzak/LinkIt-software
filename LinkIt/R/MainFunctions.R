@@ -396,10 +396,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   
   colnames(z_linkIt)[colnames(z_linkIt) == "canonical_id"] <- "ID_MATCH"
 
-  #linkit match 
-  #z_linkIt = as.data.frame(merge(x  = x_linked,y  = y_linked,by = "ID_MATCH"))
-  #z_linkIt = z_linkIt[!is.na(z_linkIt$stringdist.x) & !is.na(z_linkIt$stringdist.y),]
-
   #traditional fuzzy match 
   z_fuzzy_full <- try(as.data.frame(FastFuzzyMatch(x,y,
                                             by.x=by.x,  by.y=by.y,
@@ -407,9 +403,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                             max_dist = max(control$FuzzyThreshold),
                                             q = control$qgram)) ,T) 
   justFuzzy_dists = z_fuzzy_full$stringdist
+  colnames(z_fuzzy_full)[colnames(z_fuzzy_full) == "stringdist"] <- "stringdist_fuzzyOnly"
   
   z_list <- list(); counter <- 0
-  browser()
   for(fuzzyThres in control$FuzzyThreshold){ 
   counter = counter + 1 
   
@@ -417,7 +413,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   { 
     z_fuzzy <- z_fuzzy_full
     if(length(justFuzzy_dists) > 0){ 
-      z_fuzzy <- try(z_fuzzy_full[justFuzzy_dists<=dist_seq[counter],],T)
+      z_fuzzy <- try(z_fuzzy_full[justFuzzy_dists <= control$FuzzyThreshold[counter],],T)
     }
   } 
   if(nrow(z_fuzzy) > 0){ 
@@ -433,7 +429,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       z = z[z$metric_comparison<control$FuzzyThreshold[counter],]
     } 
   }
-  #z =  z[!duplicated(  apply(z[,c("Xref__ID","Yref__ID")],1,function(x){paste(x,collapse="")})), ]
+  z =  z[!duplicated(  apply(z[,c("Xref__ID","Yref__ID")],1,function(x){paste(x,collapse="")})), ]
   z  = z[,!colnames(z) %in% c("ID_MATCH.x", "ID_MATCH.y")]
   
   tab_x = table(z$Xref__ID)

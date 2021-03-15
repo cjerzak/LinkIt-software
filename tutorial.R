@@ -11,11 +11,6 @@ x_mat <- data.frame("xname"=c("apple computers","j p morgan"),
 y_mat <- data.frame("yname"=c("apple inc","jp morgan"),
                     "ydat"=c(rnorm(2)))
 
-library(data.table)
-dt = data.table(x = 1:5)
-dt[, y := 1]
-
-
 z_red_LinkIt <- LinkIt(x=as.data.table(x_mat), y=as.data.table(y_mat),
                        by.x = "xname",by.y="yname",
                        fuzzy_step = T, openBrowser=F,
@@ -24,8 +19,6 @@ z_red_LinkIt <- LinkIt(x=as.data.table(x_mat), y=as.data.table(y_mat),
                                        ToLower = T,
                                        NormalizeSpaces = T,
                                        RemovePunctuation = F,
-                                       x.stopwordcutoff = .9,
-                                       y.stopwordcutoff = .9,
                                        FuzzyThreshold = 0.10,
                                        matchMethod = "jw",
                                        qgram = 2))
