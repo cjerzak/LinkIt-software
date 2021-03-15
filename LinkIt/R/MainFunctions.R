@@ -37,14 +37,14 @@
 #' @importFrom data.table ":="
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
-                     force_unique = T, parallelize = T, 
-                     max.n.x = 5, max.n.y = 5, algorithm = "markov",
+                     algorithm = "markov",
+                     returnDiagnostics = F,
                      control = list(RemoveCommonWords = T, 
                                     ToLower = T,
                                     NormalizeSpaces = T,
                                     RemovePunctuation = T,
-                                    x.stopwordcutoff = 0.1,
-                                    y.stopwordcutoff = 0.1,
+                                    x.stopwordcutoff = 0.9,
+                                    y.stopwordcutoff = 0.9,
                                     FuzzyThreshold = 0.20,
                                     matchMethod = "jaccard",
                                     qgram = 2),
