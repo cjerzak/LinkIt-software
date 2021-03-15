@@ -421,6 +421,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     z_fuzzy$stringdist_fuzzy <- stringdist::stringdist(z_fuzzy[[by.x]],z_fuzzy[[by.y]],method = control$matchMethod)
     z = rbind.fill(z,z_fuzzy)[,c(colnames(z),"stringdist_fuzzy")]
     if(algorithm != "ml"){ 
+      browser()
       z$metric_comparison = apply(cbind(z$stringdist.y,
                                         z$stringdist.x,
                                         z$stringdist_fuzzy),1,
