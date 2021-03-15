@@ -323,7 +323,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           split_list = as.numeric(cut(1:n_iters,breaks=split_list))
           split_list = sapply(1:ncl, function(as){ list(which(split_list ==as))})
         }
-        if(length(unlist(split_list)) != n_iters){browser()}
         cl<-doMC::registerDoMC(ncl);
         loop_ <- foreach(outer_i = 1:ncl) %dopar% {
           counter_ <- 0 
@@ -461,8 +460,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   return(  z_list   ) 
 }
 
-trigram_index <- function(phrase,phrasename='phrase.no',browser=F){
-  if(browser==T){browser()}
+trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
+  if(openBrowser==T){browser()}
   require(plyr)
 
   DT=data.table(phrase,phrase.no=1:length(phrase))
