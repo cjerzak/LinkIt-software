@@ -38,7 +38,7 @@
 
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                      algorithm = "markov",
-                    returnDiagnostics = F,
+                    returnDiagnostics = F, returnProgress = T, 
                      control = list(RemoveCommonWords = T, 
                                     ToLower = T,
                                     NormalizeSpaces = T,
@@ -134,8 +134,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   } 
   #print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )  
   
-  if(openBrowser == T){browser()}
-  
+  #if(openBrowser == T){browser()}
   x = cbind(1:nrow(x),x);colnames(x)[1] <- 'Xref__ID'
   y = cbind(1:nrow(y),y);colnames(y)[1] <- 'Yref__ID'
   by_x_orig = x[[by.x]] ; by_y_orig = y[[by.y]] 
@@ -290,7 +289,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           doMC::registerDoMC(ncl)
         }        
         my_matched <- as.data.frame(foreach(i = 1:n_iters, .combine=rbind) %dopar% {
-            if(i %% 10==0){write.csv(data.frame("Current Iters"=i,"Total Iters"=n_iters),file='~/downloads/PROGRESS_LINKIT_ml.csv')}
+            if(i %% 10==0 & returnProgress){write.csv(data.frame("Current Iters"=i,"Total Iters"=n_iters),file='~/downloads/PROGRESS_LINKIT_ml.csv')}
             if(key_ == "x"){ my_entry = x[i][[by.x]]}
             if(key_ == "y"){ my_entry = y[i][[by.y]]}
             matchProb_vec <- try(predProbMatch(strRef     = my_entry, strPool = match_pool,
@@ -331,8 +330,12 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           my_matched_inner = matrix(NA,nrow = 0 ,ncol=4)
           colnames(my_matched_inner) <- c("my_entry","alias_name","stringdist","canonical_id")# alias_name is match name 
           for(i in split_list[[outer_i]]){ 
-          if(i %% 1000==0){write.csv(data.frame("Current Iters"=i,"Total Iters"=n_iters),file='~/downloads/PROGRESS_LINKIT_clust.csv')}
           counter_ = counter_ + 1 
+          if(i %% 100==0 & returnProgress){write.csv(data.frame("Current Split"=outer_i,
+                                                                "Total Splits"=ncl,
+                                                                "Current Iters in Split"=counter_,
+                                                                "Total Iters in Split"=length(split_list[[outer_i]])),
+                                                     file=sprintf('~/downloads/PROGRESS_LINKIT_%s.csv',algorithm))}
           if(key_ == "x"){ 
             #get the name we want to fuzzy match against the directory_LinkIt
             my_entry = x[i][[by.x]]
@@ -376,6 +379,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       f2n <- function(.){as.numeric(as.character(.))}
       keyNot_<-"y";key_ <- "x";if(nrow(x)>nrow(y)){key_ <- "y";keyNot_<-"x"}
       {
+      if(openBrowser == T){browser()}
       eval(parse(text=sprintf("z_linkIt_orig <- z_linkIt <- FastFuzzyMatch_internal(key_ = '%s')",key_)))
       #z_linkIt_orig <- z_linkIt
       z_linkIt[,'stringdist'] <- f2n(z_linkIt[,'stringdist'])
@@ -581,7 +585,7 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){
 #' 
 
 FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T, 
-                                  qgram =2, method = "jw", max_dist = 0.20,openBrowser=F){
+                                  qgram =2, method = "jw", max_dist = 0.20,openBrowser=F,returnProgress=T){
   require(stringdist, quietly = T) 
   if(openBrowser == T){browser()}
   #WARNING: X SHOULD ALWAYS BE THE LARGER SET 
@@ -620,6 +624,12 @@ FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T,
       colnames(my_matched_inner) <- c("my_entry",by.y,"stringdist")
       for(i in split_list[[outer_i]]){ 
         counter_ = counter_ + 1 
+        if(i %% 100==0 & returnProgress){write.csv(data.frame("Current Split"=outer_i,
+                                                              "Total Splits"=ncl,
+                                                              "Current Iters in Split"=counter_,
+                                                              "Total Iters in Split"=length(split_list[[outer_i]])),
+                                                   file='~/downloads/PROGRESS_FUZZY.csv')}
+        
         
         #get the name we want to fuzzy match against the directory_LinkIt
         my_entry = x[i,][[by.x]]
