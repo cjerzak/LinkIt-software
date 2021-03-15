@@ -56,6 +56,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(stringdist, quietly = F) 
   require(stringr)
   
+  if(openBrowser == T){browser()}
   if(algorithm == "ml"){ 
     #myCon = url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/mlClust.Rdata?dl=0"); 
     { 
@@ -666,12 +667,7 @@ FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T,
   myMatched = merge(as.data.frame(y), as.data.frame(myMatched),
                     by.x=by.y,by.y=by.y,all.x = F,all.y=T)
   myMatched = as.data.frame( myMatched )
-  #colnames(my_matched) <- c("MATCH_X", "MATCH_Y", "stringdist")
-  #x = cbind(x,my_matched)
-  #z = cbind(x, y[match(x[["MATCH_Y"]],y[[by.y]])])
-  #zfinal = z[as.numeric(as.character(z$stringdist))<=max_dist,]
-  #if(return_stringdist == F){ zfinal = as.data.frame(zfinal)[,!colnames(zfinal) %in% colnames(my_matched)]}
-  #if(return_stringdist == T){zfinal = as.data.frame(zfinal)[,!colnames(zfinal) %in% colnames(my_matched) | colnames(zfinal) == "stringdist"]}
+
   myMatched = myMatched[!duplicated(paste(myMatched[[by.x]],
                           myMatched[[by.y]],sep="__")),]
   return( myMatched )
