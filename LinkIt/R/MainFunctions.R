@@ -58,8 +58,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(stringr)
   
   #if(!"directory_LinkIt" %in% ls(envir = globalenv())){
-  if(T == T){ 
-
   if(algorithm == "ml"){ 
     #myCon = url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/mlClust.Rdata?dl=0"); 
     library(glmnet);library(Matrix)
@@ -69,19 +67,18 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           try(getNumericalContrast <- readRDS(myCon),T)
           try(close(myCon),T);rm(myCon)
           
-          myCon = try(url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/mlClust.Rdata?dl=0"),T)
+          myCon = try(url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/myForest.Rdata?dl=0"),T)
           try(load(myCon),F); close(myCon);rm(myCon)
           
-          coefMat <- read.csv(file="./directory_data_ml/coefMat.csv")
+          coefMat <- read.csv(file="https://dl.dropboxusercontent.com/s/d89up5488l9ujl1/coefMat.csv?dl=0")
           tmp <- as.character(coefMat[,1]);coefMat <- as.data.frame(coefMat[,-1]); row.names(coefMat) <- tmp; coefMat <- as.matrix( coefMat )
-          idf_values <- read.csv("./directory_data_ml/idf_values.csv")
+          idf_values <- read.csv(file="https://dl.dropboxusercontent.com/s/bkbhoxac6ai6m9p/idf_values.csv?dl=0")
           tmp <- idf_values[,1]; idf_values <- idf_values[,2];names(idf_values)<- tmp; rm(tmp)
           idf_values <<- idf_values
           median_idf <<- median(idf_values)
           
           library(randomForest)
-          try(myForest <<- myForest,T)
-          type_ <- "lasso"
+          try(myForest <<- myForest,T); type_ <- "lasso"
           predProbMatch <- function(strRef,strPool,
                                     VECS_INPUT_w,HASH_INPUT_w,
                                     VECS_INPUT_s,HASH_INPUT_s ){
@@ -118,19 +115,13 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
         } 
     }
   } 
-    
   #if(algorithm == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/j9pfuoncuertmcy/directory_data_bipartite_thresh100.zip?dl=0",destfile = temp1)}
-  
   if(algorithm != "ml"){ 
     temp1 <- tempfile(pattern = "tmp14323512321423231960")
     #thanks to of https://techapple.net/2014/04/trick-obtain-direct-download-links-dropbox-files-dropbox-direct-link-maker-tool-cloudlinker/
-    #bipartite thres40 
     if(algorithm == "bipartite"){download.file("https://dl.dropboxusercontent.com/s/tq675xfnnxjea4d/directory_data_bipartite_thresh40.zip?dl=0",destfile = temp1)}
-    
-    #markov 
     if(algorithm == "markov"){download.file(sprintf("https://github.com/cjerzak/LinkIt-software/raw/master/directory_data_%s.zip",algorithm),destfile = temp1)}
     temp = unzip(temp1,junkpaths=T,exdir = "tmp14323512321423231960")
-    #algorithm in "markov", "bipartite" 
     load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s_trigrams.Rdata",algorithm) ))[1]])
     load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s.Rdata",algorithm) ))[1]])
     try(file.remove(temp),T) 
@@ -144,7 +135,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     LT_d <- directory_LinkIt[,c("alias_name","canonical_id")]
   } 
   print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )  
-  }
+  
   if(browser == T){browser()}
   
   x = cbind(1:nrow(x),x);colnames(x)[1] <- 'Xref__ID'
