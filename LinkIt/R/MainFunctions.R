@@ -233,8 +233,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       tmp_ <- strsplit(tmp_,split=" ")
       tmp_ <- unique( unlist(tmp_))
 
-      print("unfound terms")
-      print(head(tmp_[!tmp_ %in% names(idf_values)],25))
+      #print("unfound terms");print(head(tmp_[!tmp_ %in% names(idf_values)],25))
       idf_values <- idf_values <- idf_values[which(names(idf_values) %in% tmp_)]
       rm(tmp_)
       
@@ -474,6 +473,45 @@ trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
   return(directory_trigrams)
 }
 
+
+#' getPerformance
+#' 
+#' Record linkage description. 
+#' 
+#' @usage 
+#' 
+#' getPerformance(x,y,by,...)
+#' 
+#' @param x,y data frames to be merged  
+#' 
+#' @param by,by.x,by.y specifications of the columns used for merging. 
+#' 
+#' 
+#' @param control A list specifying how to process the alias text. See ``Details''. 
+#' 
+#' @return z The merged data frame. 
+#' @export 
+#' 
+#' @details 
+#' LinkIt can automatically process the alias text for each dataset. In `Control', users can specify the following options. 
+#' 
+#' Set 'RemoveCommonWords' to TRUE to remove common words (those appearing in > 10\% of aliases).
+#' 
+#' Set `NormalizeSpaces' to TRUE to remove hanging whitespaces.
+#' 
+#' Set `RemovePunctuation' to TRUE to remove punctuation. 
+#' 
+#' Set `ToLower' to TRUE to ignore case. 
+#' 
+#' Set 'PreprocessingFuzzyThreshold' to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
+#'
+#' 
+#' @import stringdist
+#' @import plyr
+#' 
+#' @export
+#' 
+
 getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){ 
   x_ <- as.matrix(x_);y_ <- as.matrix(y_);z_ <- as.matrix(z_);z_truth_ <- as.matrix(z_truth_);
   ResultsMat = as.data.frame( matrix(0,nrow=1,ncol=6) ) 
@@ -496,8 +534,8 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){
       q_entry = q_vec[i]
       z_red = z_[ z_vec %in% q_entry,]
       z_truth_red = (z_truth_[z_truth_vec %in% q_entry,])
-      if(any(!class(z_red) %in% c('matrix', "data.frame"))){z_red = t(z_red)}
-      if(any(!class(z_truth_red) %in% c('matrix', "data.frame"))){z_truth_red = t(z_truth_red)}
+      if(all(!class(z_red) %in% c('matrix', "data.frame"))){z_red = t(z_red)}
+      if(all(!class(z_truth_red) %in% c('matrix', "data.frame"))){z_truth_red = t(z_truth_red)}
       z_truth_red = as.data.frame(z_truth_red)
       z_red = as.data.frame(z_red)
       if(nrow(z_truth_red) == 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"TrueNegative"]<-ReturnResults_list[[o_]][1,"TrueNegative"]+1 }
@@ -515,30 +553,6 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){
         #ReturnResults_list[[o_]][1,"FalsePositive_Type2"] = ReturnResults_list[[o_]][1,"FalsePositive_Type2"] + 1*(sum( !z_red[,by2_] %in% z_truth_red[,by2_])>0)
         #ReturnResults_list[[o_]][1,"FalsePositive"] = ReturnResults_list[[o_]][1,"FalsePositive"] + 1*(sum( !z_red[,by2_] %in% z_truth_red[,by2_])>0)
       }
-    }
-    if(T == F){ 
-    for(i in 1:length(pool_)){
-      if(i %% 100 == 0){print(i)} 
-      pool_entry = pool_[i]
-      q_entry = q_[q_[,by1_] %in% pool_entry,by1_]
-      z_red = z_[z_[,by1_] %in% pool_entry,]
-      z_truth_red = (z_truth_[z_truth_[,by1_] %in% pool_entry,])
-      if(!class(z_red) %in% c('matrix', "data.frame")){z_red = t(z_red)}
-      if(!class(z_truth_red) %in% c('matrix', "data.frame")){z_truth_red = t(z_truth_red)}
-      z_truth_red = as.data.frame(z_truth_red)
-      z_red = as.data.frame(z_red)
-      if(nrow(z_truth_red) == 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"TrueNegative"]<-ReturnResults_list[[o_]][1,"TrueNegative"]+1 }
-      if(nrow(z_truth_red) > 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"FalseNegative"]<-ReturnResults_list[[o_]][1,"FalseNegative"]+1 }
-      if(nrow(z_truth_red) == 0 & nrow(z_red) > 0){
-        ReturnResults_list[[o_]][1,"FalsePositive_Type1"]<-ReturnResults_list[[o_]][1,"FalsePositive_Type1"]+1
-        ReturnResults_list[[o_]][1,"FalsePositive"]<-ReturnResults_list[[o_]][1,"FalsePositive"]+1
-      }
-      if(nrow(z_truth_red) > 0 & nrow(z_red) > 0){
-        ReturnResults_list[[o_]][1,"TruePositive"] = ReturnResults_list[[o_]][1,"TruePositive"] + sum(z_red[,by2_] %in% z_truth_red[,by2_])
-        ReturnResults_list[[o_]][1,"FalsePositive_Type2"] = ReturnResults_list[[o_]][1,"FalsePositive_Type2"] + 1*(sum( !z_red[,by2_] %in% z_truth_red[,by2_])>0)
-        ReturnResults_list[[o_]][1,"FalsePositive"] = ReturnResults_list[[o_]][1,"FalsePositive"] + 1*(sum( !z_red[,by2_] %in% z_truth_red[,by2_])>0)
-      }
-    }
     }
   }
   return( ReturnResults_list)  
