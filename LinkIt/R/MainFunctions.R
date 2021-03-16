@@ -56,6 +56,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(data.table)
   require(stringdist, quietly = F) 
   require(stringr)
+  maxAllowedStringDist <- max(control$FuzzyThreshold)
   
   if(openBrowser == T){browser()}
   if(algorithm == "ml"){ 
@@ -296,7 +297,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                            VECS_INPUT_w = vecs_w, HASH_INPUT_w = HASHTAB_w,
                                            VECS_INPUT_s = vecs_s, HASH_INPUT_s = HASHTAB_s  ),T) 
             probNonMatch <- try(1-matchProb_vec,T) 
-            match_indices <- which(probNonMatch < max(control$FuzzyThreshold))
+            match_indices <- which(probNonMatch < maxAllowedStringDist)
             match_ <- data.frame("my_entry"=NA, "alias_name"=NA,"stringdist"=NA, "canonical_id"= NA)
             match_ <- match_[-1,]
             if(length(match_indices) > 0){ 
@@ -358,7 +359,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
             stringdist = stringdist(my_entry,alias_name,method=control$matchMethod,q = control$qgram),
             canonical_id)][
               #order(stringdist)[1]
-              which(stringdist<=max(control$FuzzyThreshold))
+              which(stringdist<=maxAllowedStringDist)
               ])
           if(nrow(match_) > 0){ 
             match_ = match_[!duplicated(match_$canonical_id),]
@@ -400,7 +401,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z_fuzzy_full <- try(as.data.frame(FastFuzzyMatch(x,y,
                                             by.x=by.x,  by.y=by.y,
                                             method = control$matchMethod, 
-                                            max_dist = max(control$FuzzyThreshold),
+                                            max_dist = maxAllowedStringDist,
                                             q = control$qgram)) ,T) 
   justFuzzy_dists = z_fuzzy_full$stringdist
   colnames(z_fuzzy_full)[colnames(z_fuzzy_full) == "stringdist"] <- "stringdist_fuzzy"
@@ -418,16 +419,15 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   } 
   if(nrow(z_fuzzy) > 0){ 
     z = rbind.fill(z,z_fuzzy)[,c(colnames(z),"stringdist_fuzzy")]
-    if(algorithm != "ml"){ 
-      z$minDist = apply(cbind(z$stringdist.x,
-                              z$stringdist.y,
-                                        z$stringdist_fuzzy),1,
-                                  function(zs){
-                                    max_yz = suppressWarnings(max(c(zs[1:2]),na.rm=T))
-                                    if(max_yz < 0){max_yz = 1000}; min(c(max_yz,zs[3]),na.rm=T)})
-      z = z[z$minDist<control$FuzzyThreshold[counter],]
-    } 
   }
+  z$minDist = apply(cbind(z$stringdist.x,
+                            z$stringdist.y,
+                            z$stringdist_fuzzy),1,
+                      function(zs){
+                        max_yz = suppressWarnings(max(c(zs[1:2]),na.rm=T))
+                        if(max_yz < 0){max_yz = 1000}; min(c(max_yz,zs[3]),na.rm=T)})
+  z = z[z$minDist <= control$FuzzyThreshold[counter],]
+  
   z =  z[!duplicated(  apply(z[,c("Xref__ID","Yref__ID")],1,function(x){paste(x,collapse="")})), ]
   z  = z[,!colnames(z) %in% c("ID_MATCH.x", "ID_MATCH.y")]
   
