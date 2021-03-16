@@ -431,8 +431,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z =  z[!duplicated(  apply(z[,c("Xref__ID","Yref__ID")],1,function(x){paste(x,collapse="")})), ]
   z  = z[,!colnames(z) %in% c("ID_MATCH.x", "ID_MATCH.y")]
   
-  tab_x = table(z$Xref__ID)
-  
   z = z[!duplicated(paste(z[[by.x]],  
                           z[[by.y]],   
                           sep="__")),]
@@ -541,18 +539,16 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){
       if(nrow(z_truth_red) == 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"TrueNegative"]<-ReturnResults_list[[o_]][1,"TrueNegative"]+1 }
       if(nrow(z_truth_red) > 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"FalseNegative"]<-ReturnResults_list[[o_]][1,"FalseNegative"]+1 }
       if(nrow(z_truth_red) == 0 & nrow(z_red) > 0){
-        #ReturnResults_list[[o_]][1,"FalsePositive_Type1"]<-ReturnResults_list[[o_]][1,"FalsePositive_Type1"]+1
-        #ReturnResults_list[[o_]][1,"FalsePositive"]<-ReturnResults_list[[o_]][1,"FalsePositive"]+1
         ReturnResults_list[[o_]][1,"FalsePositive_Type1"]<-ReturnResults_list[[o_]][1,"FalsePositive_Type1"]+nrow(z_red)
         ReturnResults_list[[o_]][1,"FalsePositive"]<-ReturnResults_list[[o_]][1,"FalsePositive"]+nrow(z_red)
       }
       if(nrow(z_truth_red) > 0 & nrow(z_red) > 0){
         ReturnResults_list[[o_]][1,"TruePositive"] = ReturnResults_list[[o_]][1,"TruePositive"] + sum(z_red[,by2_] %in% z_truth_red[,by2_])
-        ReturnResults_list[[o_]][1,"FalsePositive_Type2"] = ReturnResults_list[[o_]][1,"FalsePositive_Type2"] + (sum( !z_red[,by2_] %in% z_truth_red[,by2_])-1)
-        ReturnResults_list[[o_]][1,"FalsePositive"] = ReturnResults_list[[o_]][1,"FalsePositive"] + (sum( !z_red[,by2_] %in% z_truth_red[,by2_])-1)
-        #ReturnResults_list[[o_]][1,"FalsePositive_Type2"] = ReturnResults_list[[o_]][1,"FalsePositive_Type2"] + 1*(sum( !z_red[,by2_] %in% z_truth_red[,by2_])>0)
-        #ReturnResults_list[[o_]][1,"FalsePositive"] = ReturnResults_list[[o_]][1,"FalsePositive"] + 1*(sum( !z_red[,by2_] %in% z_truth_red[,by2_])>0)
+        n_incorrectMatches <- sum( !z_red[,by2_] %in% z_truth_red[,by2_])
+        ReturnResults_list[[o_]][1,"FalsePositive_Type2"] = ReturnResults_list[[o_]][1,"FalsePositive_Type2"] + n_incorrectMatches
+        ReturnResults_list[[o_]][1,"FalsePositive"] = ReturnResults_list[[o_]][1,"FalsePositive"] + n_incorrectMatches
       }
+      if(any(ReturnResults_list[[o_]]<0)){browser()}
     }
   }
   return( ReturnResults_list)  
