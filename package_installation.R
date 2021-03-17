@@ -11,8 +11,6 @@ devtools::document(sprintf("./%s",package_name))
 try(file.remove(sprintf("./%s.pdf",package_name)),T); system(sprintf("R CMD Rd2pdf %s",package_name))
 }
 
-unique(grep(directory_LinkIt$alias_name,pattern="apple",value=T))
-
 #Install package
 devtools::install_github(sprintf("cjerzak/%s-software/%s",package_name,package_name))
 

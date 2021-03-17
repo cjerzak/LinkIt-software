@@ -508,7 +508,6 @@ trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
 #' @import plyr
 #' 
 #' @export
-#' 
 
 getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){ 
   x_ <- as.matrix(x_);y_ <- as.matrix(y_);z_ <- as.matrix(z_);z_truth_ <- as.matrix(z_truth_);

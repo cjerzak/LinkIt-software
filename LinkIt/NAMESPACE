@@ -2,6 +2,7 @@
 
 export(FastFuzzyMatch)
 export(LinkIt)
+export(getPerformance)
 import(Rfast)
 import(doMC)
 import(plyr)
