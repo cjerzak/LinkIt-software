@@ -388,8 +388,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                         max_yz = suppressWarnings(max(c(zs[1:2]),na.rm=T))
                         if(max_yz < 0){max_yz = 1000}; min(c(max_yz,zs[3]),na.rm=T)})
   z = z[z$minDist <= control$FuzzyThreshold,]
-  
-  browser() 
+
   z =  z[!duplicated(  apply(z[,c("Xref__ID","Yref__ID")],1,function(x){paste(x,collapse="")})), ]
   z  = z[,!colnames(z) %in% c("ID_MATCH.x", "ID_MATCH.y")]
   
