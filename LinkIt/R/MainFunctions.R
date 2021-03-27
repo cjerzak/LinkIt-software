@@ -167,21 +167,23 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   }
 
   #drop duplicates after pre-process 
-  if(algorithm != "ml"){directory_LinkIt = directory_LinkIt[!duplicated(alias_name) & trimws(alias_name)!='',]}
+  if(algorithm != "ml"){
+    directory_LinkIt = directory_LinkIt[!duplicated(alias_name) & trimws(alias_name)!='',]
+    
+    #get trigrams 
+    directory_LinkIt_red <- directory_LinkIt[,c("alias_name","canonical_id")]
+    dir_tri_index <- trigram_index(as.character(directory_LinkIt_red$alias_name),"dir.row")
+    x_tri_index  <- trigram_index(x[[by.x]],"the.row")
+    y_tri_index  <- trigram_index(y[[by.y]],'the.row')
+    
+    #drop components of the big corpus which don't share any trigrams with any entries in {x,y}
+    tmp = unique(c(unique(as.character(x_tri_index[,trigram])),unique(as.character(y_tri_index[,trigram]))))
+    if(algorithm != "ml"){dir_tri_index = dir_tri_index[trigram %in% tmp,];rm(tmp);setkey(dir_tri_index, trigram)}
+  }
 
   #specify ID_match for the exact/fuzzy matching 
   x$UniversalMatchCol <- as.character(x[[by.x]]); y$UniversalMatchCol = as.character( y[[by.y]] )  
 
-  #get trigrams 
-  directory_LinkIt_red <- directory_LinkIt[,c("alias_name","canonical_id")]
-  dir_tri_index <- trigram_index(as.character(directory_LinkIt_red$alias_name),"dir.row")
-  x_tri_index  <- trigram_index(x[[by.x]],"the.row")
-  y_tri_index  <- trigram_index(y[[by.y]],'the.row')
-  
-  #drop components of the big corpus which don't share any trigrams with any entries in {x,y}
-  tmp = unique(c(unique(as.character(x_tri_index[,trigram])),unique(as.character(y_tri_index[,trigram]))))
-  if(algorithm != "ml"){dir_tri_index = dir_tri_index[trigram %in% tmp,];rm(tmp);setkey(dir_tri_index, trigram)}
-  
   #FAST MATCH --- DOESN'T WORK WITH NAs 
   `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
   
