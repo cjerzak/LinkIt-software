@@ -186,6 +186,14 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   #FAST MATCH --- DOESN'T WORK WITH NAs 
   `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
   
+  # first, traditional fuzzy match 
+  z_fuzzy <- try(as.data.frame(FastFuzzyMatch(x,  y,
+                                              by.x=by.x,  by.y=by.y,
+                                              method = control$matchMethod, 
+                                              max_dist = control$FuzzyThreshold,
+                                              q = control$qgram)) ,T)
+  colnames(z_fuzzy)[colnames(z_fuzzy) == "stringdist"] <- "stringdist_fuzzy"
+  
   #get matches 
   { 
     if(algorithm == "ml"){
@@ -359,17 +367,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   
   colnames(z_linkIt)[colnames(z_linkIt) == "canonical_id"] <- "ID_MATCH"
 
-  #traditional fuzzy match 
-  browser() 
-  z_fuzzy <- try(as.data.frame(FastFuzzyMatch(x,  y,
-                                            by.x=by.x,  by.y=by.y,
-                                            method = control$matchMethod, 
-                                            max_dist = control$FuzzyThreshold,
-                                            q = control$qgram)) ,T)
-  print("dim(z_fuzzy)")
-  print(dim( z_fuzzy) )  
-  colnames(z_fuzzy)[colnames(z_fuzzy) == "stringdist"] <- "stringdist_fuzzy"
-  
   # bring in fuzzy matches 
   { 
   z = z_linkIt
