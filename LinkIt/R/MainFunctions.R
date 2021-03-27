@@ -360,6 +360,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   colnames(z_linkIt)[colnames(z_linkIt) == "canonical_id"] <- "ID_MATCH"
 
   #traditional fuzzy match 
+  browser() 
   z_fuzzy <- try(as.data.frame(FastFuzzyMatch(x,  y,
                                             by.x=by.x,  by.y=by.y,
                                             method = control$matchMethod, 
