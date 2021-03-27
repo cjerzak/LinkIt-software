@@ -398,7 +398,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z[[by.y]] <- by_y_orig[z$Yref__ID]
   }
 
-  return(  list("z"=z,"z_fuzzy"=z_fuzzy)   ) 
+  return(  z ) 
 }
 
 trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
@@ -463,52 +463,30 @@ trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
 getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){ 
   `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
   x_ <- as.matrix(x_);y_ <- as.matrix(y_);z_ <- as.matrix(z_);z_truth_ <- as.matrix(z_truth_);
-  ResultsMat = as.data.frame( matrix(0,nrow=1,ncol=6) ) 
-  colnames(ResultsMat) <- c("TruePositive",##MatchShouldMatch_correct
-                            "FalsePositive",
-                            "FalsePositive_Type1",##MatchShouldNoMatch ("rejection of true")
-                            "FalsePositive_Type2",#MatchShouldMatch_incorrect ("nonrejection of false")
-                            "FalseNegative",#NoMatchShouldMatch_incorrect
-                            "TrueNegative")#NoMatchShouldNoMatch_correct
-  ReturnResults_list = list(ResultsMat_x=ResultsMat, ResultsMat_y=ResultsMat,savename=savename_);rm(ResultsMat)
+  ResultsMat =  c(matrix(0,nrow=1,ncol=4) )
+  names(ResultsMat) <- c("TruePositives",
+                            "FalsePositives",
+                            "FalseNegatives",
+                            "TrueNegatives")
+  
   #drop remaining duplicates 
-  #z_ <- z_[duplicated(paste(z_[,by.x],z_[,by.y],sep= "___")),]
-  #z_truth_ <- z_truth_[duplicated(paste(z_truth_[,by.x],z_truth_[,by.y],sep= "___")),]
-  for(o_ in 1:2){ 
-    if(o_ == 1){q_ = x_; by1_ = by.x_;by2_ = by.y_}
-    if(o_ == 2){q_ = y_;by1_ = by.y_;by2_ = by.x_}
-    q_vec = unique(q_[,by1_])
-    z_vec = z_[,by1_]
-    z_truth_vec <- z_truth_[,by1_]
-    for(i in 1:length(q_vec)){
-      if(i %% 500 == 0){print(i)} 
-      q_entry = q_vec[i]
-      z_red = z_[ z_vec %fin% q_entry,]
-      z_truth_red = (z_truth_[z_truth_vec %fin% q_entry,])
-      if(all(!class(z_red) %in% c('matrix', "data.frame"))){z_red = t(z_red)}
-      if(all(!class(z_truth_red) %in% c('matrix', "data.frame"))){z_truth_red = t(z_truth_red)}
-      z_truth_red = as.data.frame(z_truth_red)
-      z_red = as.data.frame(z_red)
-      if(nrow(z_truth_red) == 0 & nrow(z_red) == 0){
-        ReturnResults_list[[o_]][1,"TrueNegative"]<-ReturnResults_list[[o_]][1,"TrueNegative"]+1 
-      }
-      if(nrow(z_truth_red) > 0 & nrow(z_red) == 0){
-        ReturnResults_list[[o_]][1,"FalseNegative"]<-ReturnResults_list[[o_]][1,"FalseNegative"]+1 
-        }
-      if(nrow(z_truth_red) == 0 & nrow(z_red) > 0){
-        ReturnResults_list[[o_]][1,"FalsePositive_Type1"]<-ReturnResults_list[[o_]][1,"FalsePositive_Type1"]+nrow(z_red)
-        ReturnResults_list[[o_]][1,"FalsePositive"]<-ReturnResults_list[[o_]][1,"FalsePositive"] + nrow(z_red)
-      }
-      if(nrow(z_truth_red) > 0 & nrow(z_red) > 0){
-        ReturnResults_list[[o_]][1,"TruePositive"] = ReturnResults_list[[o_]][1,"TruePositive"] + sum(z_red[,by2_] %fin% z_truth_red[,by2_])
-        n_incorrectMatches <- sum( !z_red[,by2_] %fin% z_truth_red[,by2_])
-        ReturnResults_list[[o_]][1,"FalsePositive_Type2"] = ReturnResults_list[[o_]][1,"FalsePositive_Type2"] + n_incorrectMatches
-        ReturnResults_list[[o_]][1,"FalsePositive"] = ReturnResults_list[[o_]][1,"FalsePositive"] + n_incorrectMatches
-      }
-      if(any(ReturnResults_list[[o_]]<0)){browser()}
-    }
+  dup_z_ <- duplicated(paste(z_[,by.x_],z_[,by.y_],sep= "___"))
+  dup_zhuman_ <- duplicated(paste(z_truth_[,by.x_],z_truth_[,by.y_],sep= "___"))
+  if(length(dup_z_) > 0 & nrow(z_)>1){ z_ <- z_[!dup_z_,] } 
+  if(length(dup_z_) > 0 & nrow(z_truth_)>1){ z_truth_ <- z_truth_[!dup_zhuman_,]} 
+  
+  { 
+    z_vec = paste(z_[,by.x_],z_[,by.y_],sep="____LINKED____")
+    z_truth_vec <- paste(z_truth_[,by.x_],z_truth_[,by.y_],sep="____LINKED____")
+    z_in_truth <- table(  z_vec %in% z_truth_vec ) 
+    truth_in_z <- table(  z_truth_vec %in% z_vec ) 
+    NA20 <- function(ze){ if(is.na(ze)){ze <- 0};ze}
+    ResultsMat["TruePositives"] <- NA20(z_in_truth["TRUE"])
+    ResultsMat["FalsePositives"] <- NA20(z_in_truth["FALSE"])
+    ResultsMat["FalseNegatives"] <- NA20(truth_in_z["FALSE"])
+    ResultsMat["TrueNegatives"] <-  nrow(x)*nrow(y) -  ResultsMat["TruePositives"] - ResultsMat["FalsePositives"]
   }
-  return( ReturnResults_list)  
+  return( ResultsMat  )  
 } 
 
 
