@@ -41,12 +41,9 @@
 LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                      algorithm = "markov",
                     returnDiagnostics = F, returnProgress = T, 
-                     control = list(RemoveCommonWords = T, 
-                                    ToLower = T,
+                     control = list(ToLower = T,
                                     NormalizeSpaces = T,
                                     RemovePunctuation = T,
-                                    x.stopwordcutoff = 0.9,
-                                    y.stopwordcutoff = 0.9,
                                     FuzzyThreshold = 0.20,
                                     matchMethod = "jaccard",
                                     qgram = 2),
@@ -170,41 +167,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     set(y,NULL,by.y,str_replace_all(y[[by.y]],"\\p{P}",""))
     if("LT_d" %in% ls()){LT_d[["alias_name"]] <- str_replace_all(LT_d[["alias_name"]],"\\p{P}","")  }
   }
-  if(control$RemoveCommonWords == T){
-    #get a list of all the words as a data table
-    x.words = setDT(tstrsplit(x[[by.x]]," "),keep.rownames = T)
-    #identify the word by the row it is in
-    x.words[,x.rowid:=.I]
-    #melt this down
-    x.words = melt(x.words,id.vars='x.rowid',na.rm=T,variable.name = '_no',value.name='word')
-    #now x.words looks something like this 
-      #x.rowid word_no    word
-      #1:     1      V1    bank
-      #2:     1      V2      of
 
-    x.stop.words = x.words[,.(word.freq=.N/nrow(x)),word][word.freq > control$x.stopwordcutoff,word ]
-    #now do the same for y
-    tstrsplit(y[[by.y]][1]," ")
-    y.words = setDT(tstrsplit(y[[by.y]]," "),keep.rownames = T)
-    y.words[,y.rowid:=.I]
-    y.words = melt(y.words,id.vars='y.rowid',na.rm=T,variable.name = '_no',value.name='word')
-    y.stop.words = y.words[,.(word.freq=.N/nrow(x)),word][
-      word.freq > control$y.stopwordcutoff,word
-      ]
-    #now drop the stop words
-    #make sure there are word boundary tests
-    x.regex = paste0(paste0("\\b",x.stop.words,"\\b"),collapse="|")
-    set(
-      x,,by.x,
-      trimws(str_replace_all(str_replace_all(x[[by.x]],x.regex," "),"\\s+"," "))
-    )
-    y.regex = paste0(paste0("\\b",y.stop.words,"\\b"),collapse="|")
-    set(
-      y,,by.y,
-      trimws(str_replace_all(str_replace_all(y[[by.y]],x.regex," "),"\\s+"," "))
-    )
-  }
-  
   #drop duplicates after pre-process 
   if("LT_d" %in% ls()){LT_d = LT_d[!duplicated(alias_name) & trimws(alias_name)!='',]}
 
@@ -235,7 +198,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       tmp_ <- unique( unlist(tmp_))
 
       #print("unfound terms");print(head(tmp_[!tmp_ %in% names(idf_values)],25))
-      idf_values <- idf_values <- idf_values[which(names(idf_values) %in% tmp_)]
+      idf_values <- idf_values <- idf_values[which(names(idf_values) %fin% tmp_)]
       rm(tmp_)
       
       require(reticulate)
@@ -273,7 +236,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                        VECS_INPUT_w = vecs_w, HASH_INPUT_w = HASHTAB_w,
                                        VECS_INPUT_s = vecs_s, HASH_INPUT_s = HASHTAB_s  )
         my_entry;head(sort( matchProb_vec,decreasing=T))
-        z_red_human[z_red_human$Name %in% my_entry, ]
+        z_red_human[z_red_human$Name %fin% my_entry, ]
         system.time(replicate(10000,{
         wts_a <- fastmatch::fmatch(c("zuora","zynga"),names(idf_values));
         wts_a <- idf_values[wts_a]
@@ -358,7 +321,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
             alias_name,
             stringdist = stringdist(my_entry,alias_name,method=control$matchMethod,q = control$qgram),
             canonical_id)][
-              #order(stringdist)[1]
               which(stringdist<=maxAllowedStringDist)
               ])
           if(nrow(match_) > 0){ 
@@ -406,10 +368,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   justFuzzy_dists = z_fuzzy_full$stringdist
   colnames(z_fuzzy_full)[colnames(z_fuzzy_full) == "stringdist"] <- "stringdist_fuzzy"
   
-  z_list <- list(); counter <- 0
-  for(fuzzyThres in control$FuzzyThreshold){ 
-  counter = counter + 1 
-  
+  # bring in fuzzy matches 
+  { 
   z = z_linkIt
   { 
     z_fuzzy <- z_fuzzy_full
@@ -443,11 +403,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   #undo modifications to names for processing 
   z[[by.x]] <- by_x_orig[z$Xref__ID]
   z[[by.y]] <- by_y_orig[z$Yref__ID]
-  z_list[[counter]] <- z
   }
-  if(counter==1){z_list <- z_list[[1]]}
 
-  return(  z_list   ) 
+  return(  list("z"=z,"z_fuzzy"=z_fuzzy_full)   ) 
 }
 
 trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
@@ -510,6 +468,7 @@ trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
 #' @export
 
 getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){ 
+  `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
   x_ <- as.matrix(x_);y_ <- as.matrix(y_);z_ <- as.matrix(z_);z_truth_ <- as.matrix(z_truth_);
   ResultsMat = as.data.frame( matrix(0,nrow=1,ncol=6) ) 
   colnames(ResultsMat) <- c("TruePositive",##MatchShouldMatch_correct
@@ -519,31 +478,37 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){
                             "FalseNegative",#NoMatchShouldMatch_incorrect
                             "TrueNegative")#NoMatchShouldNoMatch_correct
   ReturnResults_list = list(ResultsMat_x=ResultsMat, ResultsMat_y=ResultsMat,savename=savename_);rm(ResultsMat)
+  #drop remaining duplicates 
+  #z_ <- z_[duplicated(paste(z_[,by.x],z_[,by.y],sep= "___")),]
+  #z_truth_ <- z_truth_[duplicated(paste(z_truth_[,by.x],z_truth_[,by.y],sep= "___")),]
   for(o_ in 1:2){ 
     if(o_ == 1){q_ = x_; by1_ = by.x_;by2_ = by.y_}
     if(o_ == 2){q_ = y_;by1_ = by.y_;by2_ = by.x_}
-    q_vec = q_[,by1_]
+    q_vec = unique(q_[,by1_])
     z_vec = z_[,by1_]
     z_truth_vec <- z_truth_[,by1_]
-    pool_ = unique(c(z_truth_[,by1_],q_[,by1_]))
     for(i in 1:length(q_vec)){
-      if(i %% 100 == 0){print(i)} 
+      if(i %% 500 == 0){print(i)} 
       q_entry = q_vec[i]
-      z_red = z_[ z_vec %in% q_entry,]
-      z_truth_red = (z_truth_[z_truth_vec %in% q_entry,])
+      z_red = z_[ z_vec %fin% q_entry,]
+      z_truth_red = (z_truth_[z_truth_vec %fin% q_entry,])
       if(all(!class(z_red) %in% c('matrix', "data.frame"))){z_red = t(z_red)}
       if(all(!class(z_truth_red) %in% c('matrix', "data.frame"))){z_truth_red = t(z_truth_red)}
       z_truth_red = as.data.frame(z_truth_red)
       z_red = as.data.frame(z_red)
-      if(nrow(z_truth_red) == 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"TrueNegative"]<-ReturnResults_list[[o_]][1,"TrueNegative"]+1 }
-      if(nrow(z_truth_red) > 0 & nrow(z_red) == 0){ReturnResults_list[[o_]][1,"FalseNegative"]<-ReturnResults_list[[o_]][1,"FalseNegative"]+1 }
+      if(nrow(z_truth_red) == 0 & nrow(z_red) == 0){
+        ReturnResults_list[[o_]][1,"TrueNegative"]<-ReturnResults_list[[o_]][1,"TrueNegative"]+1 
+      }
+      if(nrow(z_truth_red) > 0 & nrow(z_red) == 0){
+        ReturnResults_list[[o_]][1,"FalseNegative"]<-ReturnResults_list[[o_]][1,"FalseNegative"]+1 
+        }
       if(nrow(z_truth_red) == 0 & nrow(z_red) > 0){
         ReturnResults_list[[o_]][1,"FalsePositive_Type1"]<-ReturnResults_list[[o_]][1,"FalsePositive_Type1"]+nrow(z_red)
-        ReturnResults_list[[o_]][1,"FalsePositive"]<-ReturnResults_list[[o_]][1,"FalsePositive"]+nrow(z_red)
+        ReturnResults_list[[o_]][1,"FalsePositive"]<-ReturnResults_list[[o_]][1,"FalsePositive"] + nrow(z_red)
       }
       if(nrow(z_truth_red) > 0 & nrow(z_red) > 0){
-        ReturnResults_list[[o_]][1,"TruePositive"] = ReturnResults_list[[o_]][1,"TruePositive"] + sum(z_red[,by2_] %in% z_truth_red[,by2_])
-        n_incorrectMatches <- sum( !z_red[,by2_] %in% z_truth_red[,by2_])
+        ReturnResults_list[[o_]][1,"TruePositive"] = ReturnResults_list[[o_]][1,"TruePositive"] + sum(z_red[,by2_] %fin% z_truth_red[,by2_])
+        n_incorrectMatches <- sum( !z_red[,by2_] %fin% z_truth_red[,by2_])
         ReturnResults_list[[o_]][1,"FalsePositive_Type2"] = ReturnResults_list[[o_]][1,"FalsePositive_Type2"] + n_incorrectMatches
         ReturnResults_list[[o_]][1,"FalsePositive"] = ReturnResults_list[[o_]][1,"FalsePositive"] + n_incorrectMatches
       }
