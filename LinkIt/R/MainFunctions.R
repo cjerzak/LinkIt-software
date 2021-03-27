@@ -53,8 +53,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(data.table)
   require(stringdist, quietly = F) 
   require(stringr)
-  maxAllowedStringDist <- max(control$FuzzyThreshold)
-  
+
   if(openBrowser == T){browser()}
   if(algorithm == "ml"){ 
     #myCon = url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/mlClust.Rdata?dl=0"); 
@@ -260,7 +259,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                            VECS_INPUT_w = vecs_w, HASH_INPUT_w = HASHTAB_w,
                                            VECS_INPUT_s = vecs_s, HASH_INPUT_s = HASHTAB_s  ),T) 
             probNonMatch <- try(1-matchProb_vec,T) 
-            match_indices <- which(probNonMatch < maxAllowedStringDist)
+            match_indices <- which(probNonMatch <= control$FuzzyThreshold)
             match_ <- data.frame("my_entry"=NA, "alias_name"=NA,"stringdist"=NA, "canonical_id"= NA)
             match_ <- match_[-1,]
             if(length(match_indices) > 0){ 
@@ -321,7 +320,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
             alias_name,
             stringdist = stringdist(my_entry,alias_name,method=control$matchMethod,q = control$qgram),
             canonical_id)][
-              which(stringdist<=maxAllowedStringDist)
+              which(stringdist<=control$FuzzyThreshold)
               ])
           if(nrow(match_) > 0){ 
             match_ = match_[!duplicated(match_$canonical_id),]
@@ -361,23 +360,16 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   colnames(z_linkIt)[colnames(z_linkIt) == "canonical_id"] <- "ID_MATCH"
 
   #traditional fuzzy match 
-  z_fuzzy_full <- try(as.data.frame(FastFuzzyMatch(x,  y,
+  z_fuzzy <- try(as.data.frame(FastFuzzyMatch(x,  y,
                                             by.x=by.x,  by.y=by.y,
                                             method = control$matchMethod, 
-                                            max_dist = maxAllowedStringDist,
+                                            max_dist = control$FuzzyThreshold,
                                             q = control$qgram)) ,T) 
-  justFuzzy_dists = z_fuzzy_full$stringdist
-  colnames(z_fuzzy_full)[colnames(z_fuzzy_full) == "stringdist"] <- "stringdist_fuzzy"
+  colnames(z_fuzzy)[colnames(z_fuzzy) == "stringdist"] <- "stringdist_fuzzy"
   
   # bring in fuzzy matches 
   { 
   z = z_linkIt
-  { 
-    z_fuzzy <- z_fuzzy_full
-    if(length(justFuzzy_dists) > 0){ 
-      z_fuzzy <- try(z_fuzzy_full[justFuzzy_dists <= control$FuzzyThreshold,],T)
-    }
-  } 
   if(nrow(z_fuzzy) > 0){ 
     z = rbind.fill(z,z_fuzzy)[,c(colnames(z),"stringdist_fuzzy")]
   }
@@ -406,7 +398,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z[[by.y]] <- by_y_orig[z$Yref__ID]
   }
 
-  return(  list("z"=z,"z_fuzzy"=z_fuzzy_full)   ) 
+  return(  list("z"=z,"z_fuzzy"=z_fuzzy)   ) 
 }
 
 trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
