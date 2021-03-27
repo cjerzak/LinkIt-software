@@ -364,7 +364,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                             by.x=by.x,  by.y=by.y,
                                             method = control$matchMethod, 
                                             max_dist = control$FuzzyThreshold,
-                                            q = control$qgram)) ,T) 
+                                            q = control$qgram)) ,T)
+  print("dim(z_fuzzy)")
+  print(dim( z_fuzzy) )  
   colnames(z_fuzzy)[colnames(z_fuzzy) == "stringdist"] <- "stringdist_fuzzy"
   
   # bring in fuzzy matches 
@@ -597,7 +599,7 @@ FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T,
                                                    file='~/downloads/PROGRESS_FUZZY.csv')}
         
         
-        #get the name we want to fuzzy match against the directory_LinkIt
+        #get the name we want to fuzzy match against 
         my_entry = x[i,][[by.x]]
         #get the trigrams of this name
         my_entry_trigrams = x_tri_index[the.row==i,trigram]
@@ -607,7 +609,7 @@ FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T,
         if(nrow(y)<1e5){ 
           LT_entries = 1:nrow(y)
         } 
-        if(nrow(y)>1e5){ 
+        if(nrow(y)>=1e5){ 
           MinNumSharedTriGrams = ceiling(length(my_entry_trigrams)*0.1)
           LT_entries = table(y_tri_index[trigram %in% my_entry_trigrams,the.row])
           LT_entries = f2n(names(LT_entries[LT_entries>=MinNumSharedTriGrams]))
