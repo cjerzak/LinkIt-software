@@ -129,11 +129,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     print( sprintf("Directory size: %i aliases",nrow( directory )  ))
     assign("directory_LinkIt", as.data.table(directory), envir=globalenv())
     rm(directory)
-    LT_d <- directory_LinkIt[,c("alias_name","canonical_id")]
   } 
   #print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )  
   
-  #if(openBrowser == T){browser()}
   x = cbind(1:nrow(x),x);colnames(x)[1] <- 'Xref__ID'
   y = cbind(1:nrow(y),y);colnames(y)[1] <- 'Yref__ID'
   by_x_orig = x[[by.x]] ; by_y_orig = y[[by.y]] 
@@ -147,7 +145,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   if(control$ToLower == T){
     set(x,NULL,by.x,tolower(x[[by.x]]))
     set(y,NULL,by.y,tolower(y[[by.y]]))
-    if("LT_d" %in% ls()){ LT_d[["alias_name"]] <- tolower(LT_d[["alias_name"]] ) }
+    if(algorithm != "ml"){ directory_LinkIt[["alias_name"]] <- tolower(directory_LinkIt[["alias_name"]] ) }
   }
   if(control$NormalizeSpaces == T){
     set(x,NULL,by.x,
@@ -160,29 +158,29 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
               y[[by.y]],
               pattern="\\s+",
               replace=' '))
-    if("LT_d" %in% ls()){ LT_d[["alias_name"]] <- str_replace_all(LT_d[["alias_name"]],pattern="\\s+", replace = " ") }
+    if(algorithm != "ml"){ directory_LinkIt[["alias_name"]] <- str_replace_all(directory_LinkIt[["alias_name"]],pattern="\\s+", replace = " ") }
   }
   if(control$RemovePunctuation == T){
     set(x,NULL,by.x,str_replace_all(x[[by.x]],"\\p{P}",""))
     set(y,NULL,by.y,str_replace_all(y[[by.y]],"\\p{P}",""))
-    if("LT_d" %in% ls()){LT_d[["alias_name"]] <- str_replace_all(LT_d[["alias_name"]],"\\p{P}","")  }
+    if(algorithm != "ml"){directory_LinkIt[["alias_name"]] <- str_replace_all(directory_LinkIt[["alias_name"]],"\\p{P}","")  }
   }
 
   #drop duplicates after pre-process 
-  if("LT_d" %in% ls()){LT_d = LT_d[!duplicated(alias_name) & trimws(alias_name)!='',]}
+  if(algorithm != "ml"){directory_LinkIt = directory_LinkIt[!duplicated(alias_name) & trimws(alias_name)!='',]}
 
   #specify ID_match for the exact/fuzzy matching 
   x$UniversalMatchCol <- as.character(x[[by.x]]); y$UniversalMatchCol = as.character( y[[by.y]] )  
 
   #get trigrams 
-  if("LT_d" %in% ls()){LT_index = trigram_index(as.character(LT_d$alias_name),"lt_d.row")}
-  x_index  = trigram_index(x[[by.x]],"the.row")
-  y_index  = trigram_index(y[[by.y]],'the.row')
+  directory_LinkIt_red <- directory_LinkIt[,c("alias_name","canonical_id")]
+  dir_tri_index <- trigram_index(as.character(directory_LinkIt_red$alias_name),"dir.row")
+  x_tri_index  <- trigram_index(x[[by.x]],"the.row")
+  y_tri_index  <- trigram_index(y[[by.y]],'the.row')
   
   #drop components of the big corpus which don't share any trigrams with any entries in {x,y}
-  tmp = unique(c(unique(as.character(x_index[,trigram])),unique(as.character(y_index[,trigram]))))
-  if("LT_d" %in% ls()){LT_index = LT_index[trigram %in% tmp,];rm(tmp)}
-  if("LT_d" %in% ls()){setkey(LT_index, trigram)}
+  tmp = unique(c(unique(as.character(x_tri_index[,trigram])),unique(as.character(y_tri_index[,trigram]))))
+  if(algorithm != "ml"){dir_tri_index = dir_tri_index[trigram %in% tmp,];rm(tmp);setkey(dir_tri_index, trigram)}
   
   #FAST MATCH --- DOESN'T WORK WITH NAs 
   `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
@@ -303,17 +301,17 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
             #get the name we want to fuzzy match against the directory_LinkIt
             my_entry = x[i][[by.x]]
             #get the trigrams of this name
-            my_entry_trigrams = x_index[the.row==i,trigram]
+            my_entry_trigrams = x_tri_index[the.row==i,trigram]
           } 
           if(key_ == "y"){ 
             my_entry = y[i][[by.y]]
-            my_entry_trigrams = y_index[the.row==i,trigram]
+            my_entry_trigrams = y_tri_index[the.row==i,trigram]
           } 
           
           #WARNING: BIAS IN LONGER TRIGRAM KEYS??? 
           #find the set of entries in LT_d that have some common trigram
           #https://appsilon.com/fast-data-lookups-in-r-dplyr-vs-data-table/
-          LT_entries_tab = Rfast::Table(LT_index[.(my_entry_trigrams),lt_d.row, nomatch = 0L])
+          LT_entries_tab = Rfast::Table(dir_tri_index[.(my_entry_trigrams),dir.row, nomatch = 0L])
           #MinNumSharedTriGrams = ceiling(length(my_entry_trigrams)*0.05);LT_entries_tab <- LT_entries_tab[LT_entries_tab>=MinNumSharedTriGrams]
           takeTopProp = quantile(LT_entries_tab,max(1-maxDocSearchThres/length(LT_entries_tab),0.97));LT_entries_tab = LT_entries_tab[LT_entries_tab>=takeTopProp]
           match_ = (LT_d[f2n(names(LT_entries_tab)),.(
@@ -577,8 +575,8 @@ FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T,
   x = as.data.table(x)
   x[[by.x]] <- tolower(x[[by.x]] )
   y[[by.y]] <- tolower(y[[by.y]] )
-  x_index = trigram_index(x[[by.x]],"the.row")
-  y_index = trigram_index(y[[by.y]],"the.row")
+  x_tri_index = trigram_index(x[[by.x]],"the.row")
+  y_tri_index = trigram_index(y[[by.y]],"the.row")
   n_iters = max(nrow(x), nrow(y))
   { 
     require("foreach",quietly=T); require("doMC",quietly=T)
@@ -607,16 +605,16 @@ FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T,
         #get the name we want to fuzzy match against the directory_LinkIt
         my_entry = x[i,][[by.x]]
         #get the trigrams of this name
-        my_entry_trigrams = x_index[the.row==i,trigram]
+        my_entry_trigrams = x_tri_index[the.row==i,trigram]
         
         #find the set of entries in LT_d that have some common trigram
-        #LT_entries = unique(x_index[trigram %in% my_entry_trigrams,the.row])
+        #LT_entries = unique(x_tri_index[trigram %in% my_entry_trigrams,the.row])
         if(nrow(y)<1e5){ 
           LT_entries = 1:nrow(y)
         } 
         if(nrow(y)>1e5){ 
           MinNumSharedTriGrams = ceiling(length(my_entry_trigrams)*0.1)
-          LT_entries = table(y_index[trigram %in% my_entry_trigrams,the.row])
+          LT_entries = table(y_tri_index[trigram %in% my_entry_trigrams,the.row])
           LT_entries = f2n(names(LT_entries[LT_entries>=MinNumSharedTriGrams]))
         } 
 
