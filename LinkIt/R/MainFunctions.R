@@ -309,12 +309,12 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           } 
           
           #WARNING: BIAS IN LONGER TRIGRAM KEYS??? 
-          #find the set of entries in LT_d that have some common trigram
+          #find the set of entries in directory_LinkIt_red that have some common trigram
           #https://appsilon.com/fast-data-lookups-in-r-dplyr-vs-data-table/
-          LT_entries_tab = Rfast::Table(dir_tri_index[.(my_entry_trigrams),dir.row, nomatch = 0L])
-          #MinNumSharedTriGrams = ceiling(length(my_entry_trigrams)*0.05);LT_entries_tab <- LT_entries_tab[LT_entries_tab>=MinNumSharedTriGrams]
-          takeTopProp = quantile(LT_entries_tab,max(1-maxDocSearchThres/length(LT_entries_tab),0.97));LT_entries_tab = LT_entries_tab[LT_entries_tab>=takeTopProp]
-          match_ = (LT_d[f2n(names(LT_entries_tab)),.(
+          dir_entries_tab = Rfast::Table(dir_tri_index[.(my_entry_trigrams),dir.row, nomatch = 0L])
+          #MinNumSharedTriGrams = ceiling(length(my_entry_trigrams)*0.05);dir_entries_tab <- dir_entries_tab[dir_entries_tab>=MinNumSharedTriGrams]
+          takeTopProp = quantile(dir_entries_tab,max(1-maxDocSearchThres/length(dir_entries_tab),0.97));dir_entries_tab = dir_entries_tab[dir_entries_tab>=takeTopProp]
+          match_ = (directory_LinkIt_red[f2n(names(dir_entries_tab)),.(
             my_entry = my_entry,
             alias_name,
             stringdist = stringdist(my_entry,alias_name,method=control$matchMethod,q = control$qgram),
@@ -607,7 +607,7 @@ FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T,
         #get the trigrams of this name
         my_entry_trigrams = x_tri_index[the.row==i,trigram]
         
-        #find the set of entries in LT_d that have some common trigram
+        #find the set of entries in directory_LinkIt_red that have some common trigram
         #LT_entries = unique(x_tri_index[trigram %in% my_entry_trigrams,the.row])
         if(nrow(y)<1e5){ 
           LT_entries = 1:nrow(y)
