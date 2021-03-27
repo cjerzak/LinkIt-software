@@ -178,7 +178,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     
     #drop components of the big corpus which don't share any trigrams with any entries in {x,y}
     tmp = unique(c(unique(as.character(x_tri_index[,trigram])),unique(as.character(y_tri_index[,trigram]))))
-    if(algorithm != "ml"){dir_tri_index = dir_tri_index[trigram %in% tmp,];rm(tmp);setkey(dir_tri_index, trigram)}
+    dir_tri_index = dir_tri_index[trigram %in% tmp,];rm(tmp);setkey(dir_tri_index, trigram)
   }
 
   #specify ID_match for the exact/fuzzy matching 
@@ -336,7 +336,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       my_matched = my_matched[!duplicated(apply(cbind(my_matched[["my_entry"]],my_matched[["canonical_id"]]),1,function(ae){
         paste(ae,collapse="_")})),]
       return( as.data.frame(my_matched) )
-    }}
+      }
+      }
     {
       f2n <- function(.){as.numeric(as.character(.))}
       if(algorithm != "ml"){
@@ -360,7 +361,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   colnames(z_linkIt)[colnames(z_linkIt) == "canonical_id"] <- "ID_MATCH"
 
   #traditional fuzzy match 
-  z_fuzzy_full <- try(as.data.frame(FastFuzzyMatch(x,y,
+  z_fuzzy_full <- try(as.data.frame(FastFuzzyMatch(x,  y,
                                             by.x=by.x,  by.y=by.y,
                                             method = control$matchMethod, 
                                             max_dist = maxAllowedStringDist,
@@ -374,7 +375,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   { 
     z_fuzzy <- z_fuzzy_full
     if(length(justFuzzy_dists) > 0){ 
-      z_fuzzy <- try(z_fuzzy_full[justFuzzy_dists <= control$FuzzyThreshold[counter],],T)
+      z_fuzzy <- try(z_fuzzy_full[justFuzzy_dists <= control$FuzzyThreshold,],T)
     }
   } 
   if(nrow(z_fuzzy) > 0){ 
@@ -386,8 +387,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                       function(zs){
                         max_yz = suppressWarnings(max(c(zs[1:2]),na.rm=T))
                         if(max_yz < 0){max_yz = 1000}; min(c(max_yz,zs[3]),na.rm=T)})
-  z = z[z$minDist <= control$FuzzyThreshold[counter],]
+  z = z[z$minDist <= control$FuzzyThreshold,]
   
+  browser() 
   z =  z[!duplicated(  apply(z[,c("Xref__ID","Yref__ID")],1,function(x){paste(x,collapse="")})), ]
   z  = z[,!colnames(z) %in% c("ID_MATCH.x", "ID_MATCH.y")]
   
