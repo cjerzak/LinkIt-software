@@ -349,8 +349,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       if(algorithm != "ml"){
         xLinked <- FastFuzzyMatch_internal(key_ = 'x')
         yLinked <- FastFuzzyMatch_internal(key_ = 'y')
-        xLinked = merge(as.data.frame(x),as.data.frame(xLinked),by.x=by.x,by.y="my_entry")
-        yLinked = merge(as.data.frame(y),as.data.frame(yLinked),by.x=by.y,by.y="my_entry")
+        xLinked = merge(as.data.frame(x),as.data.frame(xLinked),by.x=by.x,by.y="my_entry",all=F)
+        yLinked = merge(as.data.frame(y),as.data.frame(yLinked),by.x=by.y,by.y="my_entry",all=F)
         z_linkIt <- merge(xLinked,yLinked,by="canonical_id",all=F)
       }
       if(algorithm == "ml"){
@@ -373,36 +373,36 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z_linkIt$XYref__ID <- paste(z_linkIt$Yref__ID,
                               z_linkIt$Xref__ID,sep="__LINKED__")
   
-  z = merge(z_fuzzy,z_linkIt, by = "XYref__ID")
-  z$minDist = apply(cbind(z$stringdist.x,
-                            z$stringdist.y,
-                            z$stringdist_fuzzy),1,
-                      function(zs){
-                        max_yz = suppressWarnings(max(c(zs[1:2]),na.rm=T))
-                        if(max_yz < 0){max_yz = 1000}; min(c(max_yz,zs[3]),na.rm=T)})
-  z = z[z$minDist <= control$FuzzyThreshold,]
-  tmp_ <- gsub(colnames(z),pattern="\\.x",replace="")
-  tmp_ <- gsub(tmp_,pattern="\\.y",replace="")
-  tmp__ <- tapply(1:ncol(z),tmp_,function(ze){ 
-    value_ <- 0
-    if(length(ze) == 2){value_ <- mean(z[,ze[1]] == z[,ze[2]]) }
-    return( value_ )
+  #z = merge(z_fuzzy,z_linkIt, by = "XYref__ID",all = T)
+  z = rbind.fill(z_fuzzy,z_linkIt)
+  
+  { # dead with redundant names 
+    tmp_ <- gsub(colnames(z),pattern="\\.x",replace="")
+    tmp_ <- gsub(tmp_,pattern="\\.y",replace="")
+    tmp__ <- tapply(1:ncol(z),tmp_,function(ze){ 
+      value_ <- 0
+      if(length(ze) == 2){value_ <- mean(z[,ze[1]] == z[,ze[2]],na.rm=T) }
+      return( value_ )
     })
-   rectify_names <- names((tmp__ == 1)[(tmp__ == 1)])
-   colnames(z)[tmp_ %in% rectify_names] <- rectify_names
-   z <- z[,!duplicated(colnames(z))]
-
-   #drop duplicates 
+    rectify_names <- names((tmp__ == 1)[(tmp__ == 1)])
+    colnames(z)[tmp_ %in% rectify_names] <- rectify_names
+    tapply(rectify_names,rectify_names,function(ze){ 
+      sapply(z[1:2,ze] ,1,na.omit)
+    })
+    z <- z[,!duplicated(colnames(z))]
+  } 
+  
+  inf20 <- function(ze){ if(is.infinite(ze)){ze<-0};ze}
+  na20 <- function(ze){ ze[is.na(ze)] <- 0;ze}
+  z$minDist <- apply(cbind(z$stringdist.x,z$stringdist.y),1,function(ze){inf20(max(ze,na.rm=T))}) + 
+                    na20(z$stringdist_fuzzy)
+  #drop duplicates 
   z <- do.call(rbind, tapply(1:nrow(z),z$XYref__ID,function(ze){
-       z_red <- z[ ze,]
-       list(  z_red <- z_red[which.min(z_red$minDist),] )  
-    })) 
+    z_red <- z[ ze,]
+    list(  z_red <- z_red[which.min(z_red$minDist),] )  
+  })) 
   z  = z[,!colnames(z) %in% c("ID_MATCH.x", "ID_MATCH.y")]
   
-  z = z[!duplicated(paste(z[[by.x]],  
-                          z[[by.y]],   
-                          sep="__")),]
-
   if(returnDiagnostics == F){ 
     z  = z[,colnames(z)[colnames(z) %in% c(colnames(x ),colnames(y ))]]
     z = z[,!colnames(z) %in% "UniversalMatchCol"]
@@ -413,7 +413,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z[[by.y]] <- by_y_orig[z$Yref__ID]
   }
 
-  browser()
   return_ <- z
   if(returnDecomposition == T){ return_ = list("z"=z,"z_fuzzy"=z_fuzzy,"z_linkIt"=z_linkIt)  }
   return(  return_ ) 
@@ -637,3 +636,4 @@ FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T,
   return( myMatched )
   }
 
+ 
