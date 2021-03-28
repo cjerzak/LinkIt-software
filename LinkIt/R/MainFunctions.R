@@ -414,7 +414,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   }
 
   return_ <- z
-  if(returnDecomposition == T){ return_ = list("z"=z",z_fuzzy"=z_fuzzy,"z_linkIt"=z_linkIt)}
+  if(returnDecomposition == T){ return_ = list("z"=z,z_fuzzy"=z_fuzzy,"z_linkIt"=z_linkIt)}
   return(  return_ ) 
 }
 
