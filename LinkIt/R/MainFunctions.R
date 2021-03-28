@@ -413,8 +413,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z[[by.y]] <- by_y_orig[z$Yref__ID]
   }
 
+  browser()
   return_ <- z
-  if(returnDecomposition == T){ return_ = list("z"=z,"z_fuzzy"=z_fuzzy,"z_linkIt"=z_linkIt)}
+  if(returnDecomposition == T){ return_ = list("z"=z,"z_fuzzy"=z_fuzzy,"z_linkIt"=z_linkIt)  }
   return(  return_ ) 
 }
 
