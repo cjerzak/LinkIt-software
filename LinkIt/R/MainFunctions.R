@@ -368,11 +368,12 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
   # bring in fuzzy matches 
   { 
-  z = z_linkIt
-  if(nrow(z_fuzzy) > 0){ 
-    z = rbind.fill(z,z_fuzzy)[,c(colnames(z),"stringdist_fuzzy")]
-  }
-  browser() 
+  z_fuzzy$XYref__ID <- paste(z_fuzzy$Yref__ID,
+                             z_fuzzy$Xref__ID,sep="__LINKED__")
+  z_linkIt$XYref__ID <- paste(z_linkIt$Yref__ID,
+                              z_linkIt$Xref__ID,sep="__LINKED__")
+  
+  z = merge(z_fuzzy,z_linkIt, by = "XYref__ID")
   z$minDist = apply(cbind(z$stringdist.x,
                             z$stringdist.y,
                             z$stringdist_fuzzy),1,
@@ -380,8 +381,22 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                         max_yz = suppressWarnings(max(c(zs[1:2]),na.rm=T))
                         if(max_yz < 0){max_yz = 1000}; min(c(max_yz,zs[3]),na.rm=T)})
   z = z[z$minDist <= control$FuzzyThreshold,]
+  tmp_ <- gsub(colnames(z),pattern="\\.x",replace="")
+  tmp_ <- gsub(tmp_,pattern="\\.y",replace="")
+  tmp__ <- tapply(1:ncol(z),tmp_,function(ze){ 
+    value_ <- 0
+    if(length(ze) == 2){value_ <- mean(z[,ze[1]] == z[,ze[2]]) }
+    return( value_ )
+    })
+   rectify_names <- names((tmp__ == 1)[(tmp__ == 1)])
+   colnames(z)[tmp_ %in% rectify_names] <- rectify_names
+   z <- z[,!duplicated(colnames(z))]
 
-  z =  z[!duplicated(  apply(z[,c("Xref__ID","Yref__ID")],1,function(x){paste(x,collapse="")})), ]
+   #drop duplicates 
+  z <- do.call(rbind, tapply(1:nrow(z),z$XYref__ID,function(ze){
+       z_red <- z[ ze,]
+       list(  z_red <- z_red[which.min(z_red$minDist),] )  
+    })) 
   z  = z[,!colnames(z) %in% c("ID_MATCH.x", "ID_MATCH.y")]
   
   z = z[!duplicated(paste(z[[by.x]],  
