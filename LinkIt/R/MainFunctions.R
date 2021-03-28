@@ -47,9 +47,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                     FuzzyThreshold = 0.20,
                                     matchMethod = "jaccard",
                                     qgram = 2),
-                   openBrowser = F){ 
+                   openBrowser = F,returnDecomposition = F){ 
   require(tm,quietly=F)
-  #require(fuzzyjoin,quietly=T)
   require(data.table)
   require(stringdist, quietly = F) 
   require(stringr)
@@ -373,6 +372,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   if(nrow(z_fuzzy) > 0){ 
     z = rbind.fill(z,z_fuzzy)[,c(colnames(z),"stringdist_fuzzy")]
   }
+  browser() 
   z$minDist = apply(cbind(z$stringdist.x,
                             z$stringdist.y,
                             z$stringdist_fuzzy),1,
@@ -398,7 +398,9 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z[[by.y]] <- by_y_orig[z$Yref__ID]
   }
 
-  return(  z ) 
+  return_ <- z
+  if(returnDecomposition == T){ return_ = list("z_fuzzy"=z_fuzzy,"z_linkIt"=z_linkIt)}
+  return(  return_ ) 
 }
 
 trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
@@ -478,8 +480,8 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){
   { 
     z_vec = paste(z_[,by.x_],z_[,by.y_],sep="____LINKED____")
     z_truth_vec <- paste(z_truth_[,by.x_],z_truth_[,by.y_],sep="____LINKED____")
-    z_in_truth <- table(  z_vec %in% z_truth_vec ) 
-    truth_in_z <- table(  z_truth_vec %in% z_vec ) 
+    z_in_truth <- table(  z_vec %fin% z_truth_vec ) 
+    truth_in_z <- table(  z_truth_vec %fin% z_vec ) 
     NA20 <- function(ze){ if(is.na(ze)){ze <- 0};ze}
     ResultsMat["TruePositives"] <- NA20(z_in_truth["TRUE"])
     ResultsMat["FalsePositives"] <- NA20(z_in_truth["FALSE"])
