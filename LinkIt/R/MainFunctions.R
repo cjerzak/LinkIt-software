@@ -48,6 +48,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                     matchMethod = "jaccard",
                                     qgram = 2),
                    openBrowser = F,returnDecomposition = F){ 
+  library(plyr); library(dplyr)
   require(tm,quietly=F)
   require(data.table)
   require(stringdist, quietly = F) 
@@ -84,8 +85,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                                                                      hashTab_s = HASH_INPUT_s
                                                                                      ),T))})
           contrastMat <- do.call(rbind,contrastMat)
-            #if(length(strPool) > 1){contrastMat <- do.call(rbind,contrastMat)}
-            #contrastMat <- apply(contrastMat,2,function(ze){as.numeric(as.character(ze))})
             if(type_ == "rforest"){ 
               library(randomForest)
               prob_ = try(predict(myForest,newdata = as.data.frame((contrastMat)),type="prob")[,2],T)
@@ -184,7 +183,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
   #FAST MATCH --- DOESN'T WORK WITH NAs 
   `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
-  
+
   # first, traditional fuzzy match 
   z_fuzzy <- try(as.data.frame(FastFuzzyMatch(x,  y,
                                               by.x=by.x,  by.y=by.y,
