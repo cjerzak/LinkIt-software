@@ -54,7 +54,6 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   require(stringdist, quietly = F) 
   require(stringr)
 
-  if(openBrowser == T){browser()}
   if(algorithm == "ml"){ 
     #myCon = url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/mlClust.Rdata?dl=0"); 
     { 
@@ -129,6 +128,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   } 
   #print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )  
   
+  if(openBrowser == T){browser()}
   x = cbind(1:nrow(x),x);colnames(x)[1] <- 'Xref__ID'
   y = cbind(1:nrow(y),y);colnames(y)[1] <- 'Yref__ID'
   by_x_orig = x[[by.x]] ; by_y_orig = y[[by.y]] 
