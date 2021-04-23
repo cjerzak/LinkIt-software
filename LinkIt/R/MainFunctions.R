@@ -255,10 +255,11 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
         {
           require("doMC",quietly=T);library(foreach)#library(doSNOW);
           ncl <- parallel::detectCores();
+          print(sprintf("%s cores",ncl))
           doMC::registerDoMC(ncl)
         }        
         my_matched <- as.data.frame(foreach(i = 1:n_iters, .combine=rbind) %dopar% {
-            if(i %% 10==0 & returnProgress){write.csv(data.frame("Current Iters"=i,"Total Iters"=n_iters),file='~/downloads/PROGRESS_LINKIT_ml.csv')}
+            if(i %% 10==0 & returnProgress){write.csv(data.frame("Current Iters"=i,"Total Iters"=n_iters),file='./PROGRESS_LINKIT_ml.csv')}
             if(key_ == "x"){ my_entry = x[i][[by.x]]}
             if(key_ == "y"){ my_entry = y[i][[by.y]]}
             matchProb_vec <- try(predProbMatch(strRef     = my_entry, strPool = match_pool,
@@ -288,6 +289,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
         ncl <- 1; split_list <- list(1:n_iters)
         if(n_iters>50){
           ncl = parallel::detectCores()
+          print(sprintf("%s cores",ncl))
           split_list = round(seq(0.5,n_iters,length.out = ncl+1))
           split_list = as.numeric(cut(1:n_iters,breaks=split_list))
           split_list = sapply(1:ncl, function(as){ list(which(split_list ==as))})
@@ -303,7 +305,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                                                 "Total Splits"=ncl,
                                                                 "Current Iters in Split"=counter_,
                                                                 "Total Iters in Split"=length(split_list[[outer_i]])),
-                                                     file=sprintf('~/downloads/PROGRESS_LINKIT_%s.csv',algorithm))}
+                                                     file=sprintf('./PROGRESS_LINKIT_%s.csv',algorithm))}
           if(key_ == "x"){ 
             #get the name we want to fuzzy match against the directory_LinkIt
             my_entry = x[i][[by.x]]
@@ -588,7 +590,7 @@ FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T,
                                                               "Total Splits"=ncl,
                                                               "Current Iters in Split"=counter_,
                                                               "Total Iters in Split"=length(split_list[[outer_i]])),
-                                                   file='~/downloads/PROGRESS_FUZZY.csv')}
+                                                   file='./PROGRESS_FUZZY.csv')}
         
         
         #get the name we want to fuzzy match against 
