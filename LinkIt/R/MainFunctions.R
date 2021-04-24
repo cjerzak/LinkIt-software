@@ -126,6 +126,8 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     assign("directory_LinkIt", as.data.table(directory), envir=globalenv())
     rm(directory)
   } 
+  #load("./directory_data_bipartite_thresh40/LinkIt_directory_bipartite_trigrams.Rdata")
+  #load("./directory_data_bipartite_thresh40/LinkIt_directory_bipartite.Rdata")
   #print(  sort( sapply(ls(),function(x){object.size(get(x))}))  )  
   
   if(openBrowser == T){browser()}
@@ -135,7 +137,7 @@ LinkIt <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   names(by_x_orig) <- x$Xref__ID;names(by_y_orig) <- y$Yref__ID
   y$UniversalMatchCol <- x$UniversalMatchCol <- NA 
   colnames_x_orig = colnames(x); colnames_y_orig = colnames(y)
-  
+
   #PREPROCESSING 
   x = as.data.table(x); y = as.data.table(y) 
   if(!is.null(by)){by.x <- by.y <- by}
@@ -479,6 +481,7 @@ trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
 #' @export
 
 getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){ 
+  totalCombs <- length( unique(x_[,by.x_]) ) * length( unique(y_[,by.y_]) )
   `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
   x_ <- as.matrix(x_);y_ <- as.matrix(y_);z_ <- as.matrix(z_);z_truth_ <- as.matrix(z_truth_);
   ResultsMat =  c(matrix(0,nrow=1,ncol=4) )
@@ -502,7 +505,7 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){
     ResultsMat["TruePositives"] <- NA20(z_in_truth["TRUE"])
     ResultsMat["FalsePositives"] <- NA20(z_in_truth["FALSE"])
     ResultsMat["FalseNegatives"] <- NA20(truth_in_z["FALSE"])
-    ResultsMat["TrueNegatives"] <-  nrow(x)*nrow(y) -  ResultsMat["TruePositives"] - ResultsMat["FalsePositives"]
+    ResultsMat["TrueNegatives"] <- totalCombs -  ResultsMat["TruePositives"] - ResultsMat["FalsePositives"]
   }
   return( ResultsMat  )  
 } 
@@ -546,7 +549,7 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){
 #' @export
 #' 
 
-FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T, 
+FastFuzzyMatch <- function(x, y, by.x, by.y, return_stringdist = T, onlyUFT = T, 
                                   qgram =2, method = "jw", max_dist = 0.20,openBrowser=F,returnProgress=T){
   require(stringdist, quietly = T) 
   if(openBrowser == T){browser()}
