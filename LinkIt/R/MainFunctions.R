@@ -480,10 +480,11 @@ trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
 #' 
 #' @export
 
-getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = ""){ 
-  totalCombs <- length( unique(x_[,by.x_]) ) * length( unique(y_[,by.y_]) )
+getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = "",openBrowser=F){ 
+  if(openBrowser==T){browser()}
   `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
   x_ <- as.matrix(x_);y_ <- as.matrix(y_);z_ <- as.matrix(z_);z_truth_ <- as.matrix(z_truth_);
+  totalCombs <- length( unique(x_[,by.x_]) ) * length( unique(y_[,by.y_]) )
   ResultsMat =  c(matrix(0,nrow=1,ncol=4) )
   names(ResultsMat) <- c("TruePositives",
                             "FalsePositives",
