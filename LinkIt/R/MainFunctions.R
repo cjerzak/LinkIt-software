@@ -485,17 +485,18 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = "",ope
   `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
   x_ <- as.matrix(x_);y_ <- as.matrix(y_);z_ <- as.matrix(z_);z_truth_ <- as.matrix(z_truth_);
   totalCombs <- length( unique(x_[,by.x_]) ) * length( unique(y_[,by.y_]) )
-  ResultsMat =  c(matrix(0,nrow=1,ncol=4) )
+  ResultsMat =  c(matrix(0,nrow=1,ncol=5) )
   names(ResultsMat) <- c("TruePositives",
                             "FalsePositives",
                             "FalseNegatives",
-                            "TrueNegatives")
+                            "TrueNegatives",
+                            "MatchedDatasetSize")
   
   #drop remaining duplicates 
   dup_z_ <- duplicated(paste(z_[,by.x_],z_[,by.y_],sep= "___"))
   dup_zhuman_ <- duplicated(paste(z_truth_[,by.x_],z_truth_[,by.y_],sep= "___"))
   if(length(dup_z_) > 0 & nrow(z_)>1){ z_ <- z_[!dup_z_,] } 
-  if(length(dup_z_) > 0 & nrow(z_truth_)>1){ z_truth_ <- z_truth_[!dup_zhuman_,]} 
+  if(length(dup_z_) > 0 & nrow(z_truth_)>1){ z_truth_ <- z_truth_[!dup_zhuman_,]  } 
   
   { 
     z_vec = paste(z_[,by.x_],z_[,by.y_],sep="____LINKED____")
@@ -508,6 +509,7 @@ getPerformance = function(x_, y_, z_, z_truth_, by.x_, by.y_, savename_ = "",ope
     ResultsMat["FalseNegatives"] <- NA20(truth_in_z["FALSE"])
     ResultsMat["TrueNegatives"] <- totalCombs -  ResultsMat["TruePositives"] - ResultsMat["FalsePositives"]
   }
+  ResultsMat["MatchedDatasetSize"] <- nrow(z_)
   return( ResultsMat  )  
 } 
 
