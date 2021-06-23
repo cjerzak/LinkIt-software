@@ -2,12 +2,12 @@
 ##INSTRUCTIONS FOR PACKAGE DOWNLOAD############
 ##################################################
 
-package_name <- "LinkIt"
+package_name <- "LinkOrgs"
 
 #Generate documentation 
 {
 setwd(sprintf("~/Dropbox/Directory/%s-software",package_name))
-devtools::document(sprintf("./%s",package_name))
+devtools::document(sprintf("./%s",package_name)) 
 try(file.remove(sprintf("./%s.pdf",package_name)),T); system(sprintf("R CMD Rd2pdf %s",package_name))
 }
 
