@@ -1,0 +1,12 @@
+Package: LinkOrgs
+Title: LinkOrgs: Algorithms for Organizational Record Linkage 
+Version: 0.0
+Authors: 'Brian Libgober <libgober@gmail.com > [aut,cre], Connor Jerzak <cjerzak@g.harvard.edu> [aut, cre]'
+Description: An R package for organizational records using the algorithms of Jerzak & Libgober  (2021). The linkage is done based on organizational names and using half a billion open collaborated records on those names from LinkedIn users. 
+Depends: R (>= 3.3.3)
+License: Creative Commons Attribution-Noncommercial-No Derivative Works 4.0, for academic use only.
+Encoding: UTF-8
+LazyData: true
+Maintainer: 'Connor Jerzak' <connor.jerzak@gmail.com>
+Imports: data.table,plyr
+RoxygenNote: 7.1.1
