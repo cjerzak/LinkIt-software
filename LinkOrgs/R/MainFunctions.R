@@ -28,7 +28,7 @@
 #'
 #' - Set `DistanceMeasure` to control algorithm for computing pairwise string distances. Options include "`osa`", "`jaccard`", "`jw`". See `?stringdist::stringdist` for all options. (Default is "`jaccard`")
 #' 
-#' - Set `FuzzyThreshold` to control the maximum allowed distance between two matched strings 
+#' - Set `MaxDist` to control the maximum allowed distance between two matched strings 
 #' 
 #' - Set `qgram` to control the character-level q-grams used in the distance measure. (Default is `2`)
 #' 
@@ -72,7 +72,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     ToLower = T,
                     NormalizeSpaces = T,
                     RemovePunctuation = T,
-                    FuzzyThreshold = 0.20,
+                    MaxDist = 0.20,
                     DistanceMeasure = "jaccard",
                     qgram = 2,
                    openBrowser = F,ReturnDecomposition = F){ 
@@ -218,7 +218,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z_fuzzy <- try(as.data.frame(FastFuzzyMatch(x,  y,
                                               by.x=by.x,  by.y=by.y,
                                               method = DistanceMeasure, 
-                                              MaxDist = FuzzyThreshold,
+                                              MaxDist = MaxDist,
                                               q = qgram)) ,T)
   colnames(z_fuzzy)[colnames(z_fuzzy) == "stringdist"] <- "stringdist_fuzzy"
   
@@ -299,7 +299,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                                            VECS_INPUT_w = vecs_w, HASH_INPUT_w = HASHTAB_w,
                                            VECS_INPUT_s = vecs_s, HASH_INPUT_s = HASHTAB_s  ),T) 
             probNonMatch <- try(1-matchProb_vec,T) 
-            match_indices <- which(probNonMatch <= FuzzyThreshold)
+            match_indices <- which(probNonMatch <= MaxDist)
             match_ <- data.frame("my_entry"=NA, "alias_name"=NA,"stringdist"=NA, "canonical_id"= NA)
             match_ <- match_[-1,]
             if(length(match_indices) > 0){ 
@@ -361,7 +361,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
             alias_name,
             stringdist = stringdist(my_entry,alias_name,method=DistanceMeasure,q = qgram),
             canonical_id)][
-              which(stringdist<=FuzzyThreshold)
+              which(stringdist<=MaxDist)
               ])
           if(nrow(match_) > 0){ 
             match_ = match_[!duplicated(match_$canonical_id),]
@@ -477,7 +477,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 #' 
 #' - Set `DistanceMeasure` to control algorithm for computing pairwise string distances. Options include "`osa`", "`jaccard`", "`jw`". See `?stringdist::stringdist` for all options. (Default is "`jaccard`")
 #' 
-#' - Set `FuzzyThreshold` to control the maximum allowed distance between two matched strings 
+#' - Set `MaxDist` to control the maximum allowed distance between two matched strings 
 #' 
 #' - Set `qgram` to control the character-level q-grams used in the distance measure. (Default is `2`)
 #' 
@@ -488,8 +488,6 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 #' - Set `RemovePunctuation` to TRUE to remove punctuation. (Default is `TRUE`)
 #' 
 #' - Set `ToLower` to TRUE to ignore case. (Default is `TRUE`)
-#' 
-#' - Set `PreprocessingFuzzyThreshold` to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
 #'
 #' @example
 #' 
