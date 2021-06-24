@@ -1,6 +1,6 @@
-# LinkIt
+# LinkOrgs
 
-An R package 
+An R package for linking datasets on organizations using the approach in Jerzak & Libgober (2021).  
 
 ## Installation
 
