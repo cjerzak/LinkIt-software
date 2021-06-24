@@ -11,24 +11,23 @@ FastFuzzyMatch(x,y,by,...)
 
 \item{by, by.x, by.y}{specifications of the columns used for merging. See \code{?base::merge} for more details regarding syntax.}
 
-\item{control}{A list specifying how to process the alias text. See ``Details''.}
+\item{...}{For additional options, see ``Details''.}
 }
 \value{
 z The merged data frame.
 }
 \description{
-Performs fast fuzzy matching of strings based on the string distance measure specified in \code{control}.
+Performs fast fuzzy matching of strings based on the string distance measure specified in \code{DistanceMeasure}.
 }
 \details{
-LinkIt can automatically process the alias text for each dataset. Users may specify the following options in the \code{control} list:
+LinkIt can automatically process the alias text for each dataset. Users may specify the following options:
 \itemize{
 \item Set \code{DistanceMeasure} to control algorithm for computing pairwise string distances. Options include "\code{osa}", "\code{jaccard}", "\code{jw}". See \code{?stringdist::stringdist} for all options. (Default is "\code{jaccard}")
-\item Set \code{FuzzyThreshold} to control the maximum allowed distance between two matched strings
+\item Set \code{MaxDist} to control the maximum allowed distance between two matched strings
 \item Set \code{qgram} to control the character-level q-grams used in the distance measure. (Default is \code{2})
 \item Set \code{RemoveCommonWords} to TRUE to remove common words (those appearing in > 10\% of aliases). (Default is \code{FALSE})
 \item Set \code{NormalizeSpaces} to TRUE to remove hanging whitespaces. (Default is \code{TRUE})
 \item Set \code{RemovePunctuation} to TRUE to remove punctuation. (Default is \code{TRUE})
 \item Set \code{ToLower} to TRUE to ignore case. (Default is \code{TRUE})
-\item Set 'PreprocessingFuzzyThreshold` to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step.
 }
 }

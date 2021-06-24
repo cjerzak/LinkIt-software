@@ -13,7 +13,9 @@ LinkOrgs(x, y, by ...)
 
 \item{algorithm}{character; specifies which algorithm described in Jerzak and Libgober (2021) should be used. Options are "\code{markov}", "\code{bipartite}", and "\code{ml}". Default is "\code{ml}", which uses a machine learning approach to predicting the match probability.}
 
-\item{control}{A list specifying how to process the alias text and how to compute string distances. See
+\item{ReturnDiagnostics}{logical; specifies whether various match-level diagnostics should be returned in the merged data frame.}
+
+\item{...}{For additional specification options, see
 ``Details''.}
 }
 \value{
@@ -23,10 +25,10 @@ LinkOrgs(x, y, by ...)
 Implements the organizational record linkage algorithms of Jerzak and Libgober (2021).
 }
 \details{
-\code{LinkOrgs}automatically processes the name text for each dataset (specified by \code{by}, \code{by.x}, and/or \code{by.y}. Users may specify the following options in the \code{control} list:
+\code{LinkOrgs}automatically processes the name text for each dataset (specified by \code{by}, \code{by.x}, and/or \code{by.y}. Users may specify the following options:
 \itemize{
 \item Set \code{DistanceMeasure} to control algorithm for computing pairwise string distances. Options include "\code{osa}", "\code{jaccard}", "\code{jw}". See \code{?stringdist::stringdist} for all options. (Default is "\code{jaccard}")
-\item Set \code{FuzzyThreshold} to control the maximum allowed distance between two matched strings
+\item Set \code{MaxDist} to control the maximum allowed distance between two matched strings
 \item Set \code{qgram} to control the character-level q-grams used in the distance measure. (Default is \code{2})
 \item Set \code{RemoveCommonWords} to \code{TRUE} to remove common words (those appearing in >
 10\% of aliases). (Default is \code{FALSE})
