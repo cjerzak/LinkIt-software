@@ -194,7 +194,6 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   }
 
   #drop duplicates after pre-process 
-  browser() 
   if(algorithm != "ml"){
     directory_LinkIt = directory_LinkIt[!duplicated(alias_name) & trimws(alias_name)!='',]
     
@@ -421,9 +420,6 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     })
     rectify_names <- names((tmp__ == 1)[(tmp__ == 1)])
     colnames(z)[tmp_ %in% rectify_names] <- rectify_names
-    tapply(rectify_names,rectify_names,function(ze){ 
-      sapply(z[1:2,ze] ,1,na.omit)
-    })
     z <- z[,!duplicated(colnames(z))]
   } 
   
