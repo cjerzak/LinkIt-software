@@ -48,8 +48,6 @@
 #' y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
 #' x <- data.frame("orgnames_x"=x_orgnames)
 #' y <- data.frame("orgnames_y"=y_orgnames)
-#' z <- data.frame("orgnames_x"=x_orgnames[1:2], "orgnames_y"=y_orgnames[1:2])
-#' z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
 #' 
 #' # Perform merge 
 #' linkedOrgs <- LinkOrgs(x = x, 
@@ -610,13 +608,13 @@ FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_str
 
 
 
-#' MatchPerformance
+#' AssessMatchPerformance
 #' 
 #' Automatically computes the true/false positive and true/false negative rates based on a ground-truth (preferably human-generated) matched dataset. 
 #' 
 #' @usage 
 #' 
-#' MatchPerformance(x,y,by,...)
+#' AssessMatchPerformance(x,y,by,...)
 #' 
 #' @param x,y data frames to be merged  
 #' 
@@ -640,7 +638,7 @@ FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_str
 #' z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
 #' 
 #' # Obtain match performance data 
-#' performanceMat <- MatchPerformance(x = x, 
+#' performanceMat <- AssessMatchPerformance(x = x, 
 #'                                    y = y, 
 #'                                    z = z, 
 #'                                    z_true = z_true,
@@ -652,7 +650,7 @@ FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_str
 #' @export
 #' @md 
 
-MatchPerformance = function(x, y, z, z_true, by, by.x=by, by.y=by, openBrowser=F){ 
+AssessMatchPerformance = function(x, y, z, z_true, by, by.x=by, by.y=by, openBrowser=F){ 
   if(openBrowser==T){browser()}
   `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
   x <- as.matrix(x);y <- as.matrix(y);z <- as.matrix(z);z_true <- as.matrix(z_true);
