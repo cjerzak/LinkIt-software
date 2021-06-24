@@ -65,7 +65,7 @@
 #' @md
 
 LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
-                     algorithm = "markov",
+                    algorithm = "bipartite",
                     returnDiagnostics = F, returnProgress = T, 
                      control = list(ToLower = T,
                                     NormalizeSpaces = T,
@@ -426,6 +426,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z$minDist <- apply(cbind(z$stringdist.x,z$stringdist.y),1,function(ze){inf20(max(ze,na.rm=T))}) + 
                     na20(z$stringdist_fuzzy)
   #drop duplicates 
+  browser()
   z <- do.call(rbind, tapply(1:nrow(z),z$XYref__ID,function(ze){
     z_red <- z[ ze,]
     list(  z_red <- z_red[which.min(z_red$minDist),] )  
