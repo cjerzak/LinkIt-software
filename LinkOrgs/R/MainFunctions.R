@@ -448,6 +448,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   #undo modifications to names for processing 
   z[[by.x]] <- by_x_orig[z$Xref__ID]
   z[[by.y]] <- by_y_orig[z$Yref__ID]
+  z  = z[,!colnames(z) %in% c('Yref__ID', 'Xref__ID')]
   }
 
   return_ <- z
