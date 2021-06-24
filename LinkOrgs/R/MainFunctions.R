@@ -426,6 +426,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   inf20 <- function(ze){ if(is.infinite(ze)){ze<-0};ze}
   na20 <- function(ze){ ze[is.na(ze)] <- 0;ze}
   
+  browser()
   #drop duplicates 
   if(nrow(z)>0){ 
     z$minDist <- apply(cbind(z$stringdist.x,z$stringdist.y),1,function(ze){inf20(max(ze,na.rm=T))}) + 
