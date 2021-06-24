@@ -214,6 +214,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   #FAST MATCH --- DOESN'T WORK WITH NAs 
   `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
 
+  browser() 
   # first, traditional fuzzy match 
   z_fuzzy <- try(as.data.frame(FastFuzzyMatch(x,  y,
                                               by.x=by.x,  by.y=by.y,
