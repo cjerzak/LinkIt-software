@@ -427,6 +427,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   na20 <- function(ze){ ze[is.na(ze)] <- 0;ze}
   
   #drop duplicates 
+  browser()
   if(nrow(z)>0){ 
     z$minDist <- apply(cbind(z$stringdist.x,z$stringdist.y),1,function(ze){inf20(max(ze,na.rm=T))}) + 
       na20(z$stringdist_fuzzy)
