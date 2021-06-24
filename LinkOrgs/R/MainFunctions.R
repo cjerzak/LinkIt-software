@@ -18,13 +18,13 @@
 #' 
 #' @param ReturnDiagnostics logical; specifies whether various match-level diagnostics should be returned in the merged data frame. 
 #'
-#' @param control A list specifying how to process the alias text and how to compute string distances. See
+#' @param ... For additional specification options, see
 #'   ``Details''.
 #'
 #' @return `z` The merged data frame.
 #' @export
 #'
-#' @details `LinkOrgs`automatically processes the name text for each dataset (specified by `by`, `by.x`, and/or `by.y`. Users may specify the following options in the `control` list: 
+#' @details `LinkOrgs`automatically processes the name text for each dataset (specified by `by`, `by.x`, and/or `by.y`. Users may specify the following options:
 #'
 #' - Set `DistanceMeasure` to control algorithm for computing pairwise string distances. Options include "`osa`", "`jaccard`", "`jw`". See `?stringdist::stringdist` for all options. (Default is "`jaccard`")
 #' 
@@ -68,14 +68,14 @@
 
 LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     algorithm = "bipartite",
-                    ReturnDiagnostics = F, returnProgress = T, 
-                     control = list(ToLower = T,
-                                    NormalizeSpaces = T,
-                                    RemovePunctuation = T,
-                                    FuzzyThreshold = 0.20,
-                                    DistanceMeasure = "jaccard",
-                                    qgram = 2),
-                   openBrowser = F,returnDecomposition = F){ 
+                    ReturnDiagnostics = F, ReturnProgress = T, 
+                    ToLower = T,
+                    NormalizeSpaces = T,
+                    RemovePunctuation = T,
+                    FuzzyThreshold = 0.20,
+                    DistanceMeasure = "jaccard",
+                    qgram = 2,
+                   openBrowser = F,ReturnDecomposition = F){ 
   library(plyr); library(dplyr)
   require(tm,quietly=F)
   require(data.table)
@@ -147,7 +147,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
     load(temp[which(grepl(temp,pattern=sprintf("LinkIt_directory_%s.Rdata",algorithm) ))[1]])
     try(file.remove(temp),T) 
     assign("directory_trigrams", as.data.table(directory_trigrams), envir=globalenv())
-    if(control$ToLower == T){ directory_trigrams$trigram <- tolower(directory_trigrams$trigram) }
+    if(ToLower == T){ directory_trigrams$trigram <- tolower(directory_trigrams$trigram) }
     directory_trigrams = directory_trigrams[!duplicated(paste(directory_trigrams$trigram,
                                                         directory_trigrams$alias_id,collapse="_")),]
     print( sprintf("Directory size: %i aliases",nrow( directory )  ))
@@ -169,12 +169,12 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   #PREPROCESSING 
   x = as.data.table(x); y = as.data.table(y) 
   if(!is.null(by)){by.x <- by.y <- by}
-  if(control$ToLower == T){
+  if(ToLower == T){
     set(x,NULL,by.x,tolower(x[[by.x]]))
     set(y,NULL,by.y,tolower(y[[by.y]]))
     if(algorithm != "ml"){ directory_LinkIt[["alias_name"]] <- tolower(directory_LinkIt[["alias_name"]] ) }
   }
-  if(control$NormalizeSpaces == T){
+  if(NormalizeSpaces == T){
     set(x,NULL,by.x,
         str_replace_all(
         x[[by.x]],
@@ -187,7 +187,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
               replace=' '))
     if(algorithm != "ml"){ directory_LinkIt[["alias_name"]] <- str_replace_all(directory_LinkIt[["alias_name"]],pattern="\\s+", replace = " ") }
   }
-  if(control$RemovePunctuation == T){
+  if(RemovePunctuation == T){
     set(x,NULL,by.x,str_replace_all(x[[by.x]],"\\p{P}",""))
     set(y,NULL,by.y,str_replace_all(y[[by.y]],"\\p{P}",""))
     if(algorithm != "ml"){directory_LinkIt[["alias_name"]] <- str_replace_all(directory_LinkIt[["alias_name"]],"\\p{P}","")  }
@@ -217,9 +217,9 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   # first, traditional fuzzy match 
   z_fuzzy <- try(as.data.frame(FastFuzzyMatch(x,  y,
                                               by.x=by.x,  by.y=by.y,
-                                              method = control$DistanceMeasure, 
-                                              max_dist = control$FuzzyThreshold,
-                                              q = control$qgram)) ,T)
+                                              method = DistanceMeasure, 
+                                              MaxDist = FuzzyThreshold,
+                                              q = qgram)) ,T)
   colnames(z_fuzzy)[colnames(z_fuzzy) == "stringdist"] <- "stringdist_fuzzy"
   
   #get matches 
@@ -237,8 +237,11 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       rm(tmp_)
       
       require(reticulate)
-      try(py_run_string(''), T)
-      py_run_string('import chars2vec')
+      try_chars2vec <- try(py_run_string('import chars2vec'),T)
+      if(class(try_chars2vec)=="try-error"){
+        stop("Please install chars2vec, tensorflow, and keras; see 
+             https://github.com/IntuitionEngineeringTeam/chars2vec for details.")
+      }
       py_run_string('c2v_model = chars2vec.load_model("eng_50")')
       
       #get w vecs 
@@ -289,14 +292,14 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           doMC::registerDoMC(ncl)
         }        
         my_matched <- as.data.frame(foreach(i = 1:n_iters, .combine=rbind) %dopar% {
-            if(i %% 10==0 & returnProgress){write.csv(data.frame("Current Iters"=i,"Total Iters"=n_iters),file='./PROGRESS_LINKIT_ml.csv')}
+            if(i %% 10==0 & ReturnProgress){write.csv(data.frame("Current Iters"=i,"Total Iters"=n_iters),file='./PROGRESS_LINKIT_ml.csv')}
             if(key_ == "x"){ my_entry = x[i][[by.x]]}
             if(key_ == "y"){ my_entry = y[i][[by.y]]}
             matchProb_vec <- try(predProbMatch(strRef     = my_entry, strPool = match_pool,
                                            VECS_INPUT_w = vecs_w, HASH_INPUT_w = HASHTAB_w,
                                            VECS_INPUT_s = vecs_s, HASH_INPUT_s = HASHTAB_s  ),T) 
             probNonMatch <- try(1-matchProb_vec,T) 
-            match_indices <- which(probNonMatch <= control$FuzzyThreshold)
+            match_indices <- which(probNonMatch <= FuzzyThreshold)
             match_ <- data.frame("my_entry"=NA, "alias_name"=NA,"stringdist"=NA, "canonical_id"= NA)
             match_ <- match_[-1,]
             if(length(match_indices) > 0){ 
@@ -331,7 +334,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           colnames(my_matched_inner) <- c("my_entry","alias_name","stringdist","canonical_id")# alias_name is match name 
           for(i in split_list[[outer_i]]){ 
           counter_ = counter_ + 1 
-          if(i %% 100==0 & returnProgress){write.csv(data.frame("Current Split"=outer_i,
+          if(i %% 100==0 & ReturnProgress){write.csv(data.frame("Current Split"=outer_i,
                                                                 "Total Splits"=ncl,
                                                                 "Current Iters in Split"=counter_,
                                                                 "Total Iters in Split"=length(split_list[[outer_i]])),
@@ -356,9 +359,9 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           match_ = (directory_LinkIt_red[f2n(names(dir_entries_tab)),.(
             my_entry = my_entry,
             alias_name,
-            stringdist = stringdist(my_entry,alias_name,method=control$DistanceMeasure,q = control$qgram),
+            stringdist = stringdist(my_entry,alias_name,method=DistanceMeasure,q = qgram),
             canonical_id)][
-              which(stringdist<=control$FuzzyThreshold)
+              which(stringdist<=FuzzyThreshold)
               ])
           if(nrow(match_) > 0){ 
             match_ = match_[!duplicated(match_$canonical_id),]
@@ -450,13 +453,13 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   }
 
   return_ <- z
-  if(returnDecomposition == T){ return_ = list("z"=z,"z_fuzzy"=z_fuzzy,"z_linkIt"=z_linkIt)  }
+  if(ReturnDecomposition == T){ return_ = list("z"=z,"z_fuzzy"=z_fuzzy,"z_linkIt"=z_linkIt)  }
   return(  return_ ) 
 }
 
 #' FastFuzzyMatch
 #' 
-#' Performs fast fuzzy matching of strings based on the string distance measure specified in `control`.
+#' Performs fast fuzzy matching of strings based on the string distance measure specified in `DistanceMeasure`.
 #' 
 #' 
 #' @usage 
@@ -467,13 +470,13 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 #' 
 #' @param by,by.x,by.y specifications of the columns used for merging. See `?base::merge` for more details regarding syntax. 
 #' 
-#' @param control A list specifying how to process the alias text. See ``Details''. 
+#' @param ... For additional options, see ``Details''. 
 #' 
 #' @return z The merged data frame. 
 #' @export 
 #' 
 #' @details 
-#' LinkIt can automatically process the alias text for each dataset. Users may specify the following options in the `control` list:
+#' LinkIt can automatically process the alias text for each dataset. Users may specify the following options: 
 #' 
 #' - Set `DistanceMeasure` to control algorithm for computing pairwise string distances. Options include "`osa`", "`jaccard`", "`jw`". See `?stringdist::stringdist` for all options. (Default is "`jaccard`")
 #' 
@@ -489,7 +492,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 #' 
 #' - Set `ToLower` to TRUE to ignore case. (Default is `TRUE`)
 #' 
-#' - Set 'PreprocessingFuzzyThreshold` to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
+#' - Set `PreprocessingFuzzyThreshold` to some number between 0 and 1 to specify the threshold for the pre-processing fuzzy matching step. 
 #'
 #' @example
 #' 
@@ -514,7 +517,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 #' @md 
 
 FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_stringdist = T, onlyUFT = T, 
-                           qgram =2, method = "jw", max_dist = 0.20,openBrowser=F,returnProgress=T){
+                           qgram =2, method = "jw", MaxDist = 0.20,openBrowser=F,ReturnProgress=T){
   require(stringdist, quietly = T) 
   if(openBrowser == T){browser()}
   
@@ -555,7 +558,7 @@ FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_str
       colnames(my_matched_inner) <- c("my_entry",by.y,"stringdist")
       for(i in split_list[[outer_i]]){ 
         counter_ = counter_ + 1 
-        if(i %% 100==0 & returnProgress){write.csv(data.frame("Current Split"=outer_i,
+        if(i %% 100==0 & ReturnProgress){write.csv(data.frame("Current Split"=outer_i,
                                                               "Total Splits"=ncl,
                                                               "Current Iters in Split"=counter_,
                                                               "Total Iters in Split"=length(split_list[[outer_i]])),
@@ -584,9 +587,9 @@ FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_str
                          stringdist = stringdist(my_entry,%s,method=method,q = qgram))]",by.y,by.y)
         match_ = eval(parse(text=match_))
         if(nrow(match_)>0){
-          #match_ = match_[,.(which(stringdist<=max_dist)) ]
+          #match_ = match_[,.(which(stringdist<=MaxDist)) ]
           match_ = as.data.frame(match_)
-          match_ = match_[which(match_$stringdist<=max_dist),]
+          match_ = match_[which(match_$stringdist<=MaxDist),]
           my_matched_inner = rbind(my_matched_inner,match_)
         }
       } 
