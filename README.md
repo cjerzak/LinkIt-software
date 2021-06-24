@@ -10,6 +10,10 @@ The most recent version of `LinkOrgs` can be installed directly from the reposit
 devtools::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
 ```
 
+The machine-learning based algorithm accessible via the `algorithm="ml"` option relies on the `chars2vec` `Python` package. For details about downloading, see `https://github.com/IntuitionEngineeringTeam/chars2vec`. Tensorflow and Keras are dependencies. The network-based linkage approaches (`algorithm="bipartite"` and `algorithm = "markov"`) do not require these packages. 
+
+Note that all options require Internet access in order to download the LinkedIn-based network information. 
+
 ## Walkthrough
 
 After installing the package, let's get some experience with it in a simple example. 
