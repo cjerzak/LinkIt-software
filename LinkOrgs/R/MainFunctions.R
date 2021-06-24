@@ -14,7 +14,9 @@
 #'
 #' @param by,by.x,by.y character vector(s) that specify the column names used for merging data frames `x` and `y`. The merging variables should be organizational names. See `?base::merge` for more details regarding syntax. 
 #' 
-#' @param algorithm character; specifies which algorithm described in Jerzak and Libgober (2021) should be used. Options are "`markov`", "`bipartite`", and "`ml`". Default is "`ml`", which uses a machine learning approach to predicting the match probability. 
+#' @param algorithm character; specifies which algorithm described in Jerzak and Libgober (2021) should be used. Options are "`markov`", "`bipartite`", and "`ml`". Default is "`ml`", which uses a machine learning approach to predicting the match probability.
+#' 
+#' @param ReturnDiagnostics logical; specifies whether various match-level diagnostics should be returned in the merged data frame. 
 #'
 #' @param control A list specifying how to process the alias text and how to compute string distances. See
 #'   ``Details''.
@@ -66,7 +68,7 @@
 
 LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     algorithm = "bipartite",
-                    returnDiagnostics = F, returnProgress = T, 
+                    ReturnDiagnostics = F, returnProgress = T, 
                      control = list(ToLower = T,
                                     NormalizeSpaces = T,
                                     RemovePunctuation = T,
@@ -426,14 +428,14 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   z$minDist <- apply(cbind(z$stringdist.x,z$stringdist.y),1,function(ze){inf20(max(ze,na.rm=T))}) + 
                     na20(z$stringdist_fuzzy)
   #drop duplicates 
-  browser()
-  z <- do.call(rbind, tapply(1:nrow(z),z$XYref__ID,function(ze){
+  z <- try(do.call(rbind, tapply(1:nrow(z),z$XYref__ID,function(ze){
     z_red <- z[ ze,]
     list(  z_red <- z_red[which.min(z_red$minDist),] )  
-  })) 
+  })) , T)
+  if(class(z) == "try-error"){browser()}
   z  = z[,!colnames(z) %in% c("ID_MATCH.x", "ID_MATCH.y")]
   
-  if(returnDiagnostics == F){ 
+  if(ReturnDiagnostics == F){ 
     z  = z[,colnames(z)[colnames(z) %in% c(colnames(x ),colnames(y ))]]
     z = z[,!colnames(z) %in% "UniversalMatchCol"]
   }
