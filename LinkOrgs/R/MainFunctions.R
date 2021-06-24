@@ -360,7 +360,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
           match_ = (directory_LinkIt_red[f2n(names(dir_entries_tab)),.(
             my_entry = my_entry,
             alias_name,
-            stringdist = stringdist(my_entry,alias_name,DistanceMeasure=DistanceMeasure,q = qgram),
+            stringdist = stringdist(my_entry,alias_name,method=DistanceMeasure,q = qgram),
             canonical_id)][
               which(stringdist<=MaxDist)
               ])
@@ -581,7 +581,7 @@ FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_str
         #calculate the nearest match accordfng to string distance
         match_ = sprintf("y[LT_entries,.(
                          my_entry=my_entry,%s,
-                         stringdist = stringdist(my_entry,%s,DistanceMeasure=DistanceMeasure,q = qgram))]",by.y,by.y)
+                         stringdist = stringdist(my_entry,%s,method=DistanceMeasure,q = qgram))]",by.y,by.y)
         match_ = eval(parse(text=match_))
         if(nrow(match_)>0){
           #match_ = match_[,.(which(stringdist<=MaxDist)) ]
