@@ -399,7 +399,6 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
   # bring in fuzzy matches 
   { 
-  z_fuzzy$XYref__ID <- z_fuzzy$XYref__ID <- NA
   z_fuzzy$XYref__ID <- paste(z_fuzzy$Yref__ID,
                              z_fuzzy$Xref__ID,sep="__LINKED__")
   z_linkIt$XYref__ID <- paste(z_linkIt$Yref__ID,
