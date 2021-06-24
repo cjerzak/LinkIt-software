@@ -24,7 +24,7 @@
 #' @return `z` The merged data frame.
 #' @export
 #'
-#' @details `LinkOrgs`automatically processes the name text for each dataset (specified by `by`, `by.x`, and/or `by.y`. Users may specify the following options:
+#' @details `LinkOrgs` automatically processes the name text for each dataset (specified by `by`, `by.x`, and/or `by.y`. Users may specify the following options:
 #'
 #' - Set `DistanceMeasure` to control algorithm for computing pairwise string distances. Options include "`osa`", "`jaccard`", "`jw`". See `?stringdist::stringdist` for all options. (Default is "`jaccard`")
 #' 
@@ -508,6 +508,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 #' 
 #' @import stringdist
 #' @import plyr
+#' @import data.table
 #' 
 #' @export
 #' @md 
