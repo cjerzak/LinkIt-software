@@ -399,6 +399,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
   # bring in fuzzy matches 
   { 
+  z_fuzzy$XYref__ID <- z_fuzzy$XYref__ID <- NA
   z_fuzzy$XYref__ID <- paste(z_fuzzy$Yref__ID,
                              z_fuzzy$Xref__ID,sep="__LINKED__")
   z_linkIt$XYref__ID <- paste(z_linkIt$Yref__ID,
@@ -425,13 +426,16 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   
   inf20 <- function(ze){ if(is.infinite(ze)){ze<-0};ze}
   na20 <- function(ze){ ze[is.na(ze)] <- 0;ze}
+  z$minDist <- NA
   z$minDist <- apply(cbind(z$stringdist.x,z$stringdist.y),1,function(ze){inf20(max(ze,na.rm=T))}) + 
                     na20(z$stringdist_fuzzy)
   #drop duplicates 
-  z <- try(do.call(rbind, tapply(1:nrow(z),z$XYref__ID,function(ze){
-    z_red <- z[ ze,]
-    list(  z_red <- z_red[which.min(z_red$minDist),] )  
-  })) , T)
+  if(nrow(z)>0){ 
+    z <- try(do.call(rbind, tapply(1:nrow(z),z$XYref__ID,function(ze){
+      z_red <- z[ ze,]
+      list(  z_red <- z_red[which.min(z_red$minDist),] )  
+    })) , T)
+  } 
   if(class(z) == "try-error"){browser()}
   z  = z[,!colnames(z) %in% c("ID_MATCH.x", "ID_MATCH.y")]
   
