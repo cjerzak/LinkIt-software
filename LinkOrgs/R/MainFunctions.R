@@ -425,7 +425,6 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   
   inf20 <- function(ze){ if(is.infinite(ze)){ze<-0};ze}
   na20 <- function(ze){ ze[is.na(ze)] <- 0;ze}
-  z$minDist <- NA
   
   #drop duplicates 
   if(nrow(z)>0){ 
