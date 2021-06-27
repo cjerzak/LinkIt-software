@@ -62,6 +62,6 @@ PerformanceMatrix <- AssessMatchPerformance(x  = x,
 Creative Commons Attribution-Noncommercial-No Derivative Works 4.0, for academic use only.
 
 ## Acknowledgments
-Thank you to Gary King, Kosuke Imai, Xiang Zhou, and members of the Imai Research Workshop for valuable feedback on this research project. 
+Thank you to Gary King, Kosuke Imai, Xiang Zhou, and members of the Imai Research Workshop for valuable feedback on this research project. We also would like to thank Gil Tamir for invaluable research assistance. 
 
 >>>>>>> 95a13a4ea40c90b623d7aa3a074611a11551abc1
