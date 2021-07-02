@@ -25,7 +25,7 @@ LinkOrgs(x, y, by ...)
 Implements the organizational record linkage algorithms of Jerzak and Libgober (2021).
 }
 \details{
-\code{LinkOrgs}automatically processes the name text for each dataset (specified by \code{by}, \code{by.x}, and/or \code{by.y}. Users may specify the following options:
+\code{LinkOrgs} automatically processes the name text for each dataset (specified by \code{by}, \code{by.x}, and/or \code{by.y}. Users may specify the following options:
 \itemize{
 \item Set \code{DistanceMeasure} to control algorithm for computing pairwise string distances. Options include "\code{osa}", "\code{jaccard}", "\code{jw}". See \code{?stringdist::stringdist} for all options. (Default is "\code{jaccard}")
 \item Set \code{MaxDist} to control the maximum allowed distance between two matched strings
