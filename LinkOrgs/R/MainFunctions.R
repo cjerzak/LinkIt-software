@@ -638,13 +638,13 @@ FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_str
 #' z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
 #' 
 #' # Obtain match performance data 
-#' performanceMat <- AssessMatchPerformance(x = x, 
+#' PerformanceMatrix <- AssessMatchPerformance(x = x, 
 #'                                    y = y, 
 #'                                    z = z, 
 #'                                    z_true = z_true,
 #'                                    by.x = "orgnames_x", 
 #'                                    by.y = "orgnames_y")
-#' print( performanceMat )
+#' print( PerformanceMatrix )
 #' 
 #' 
 #' @export
