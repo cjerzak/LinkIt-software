@@ -77,8 +77,8 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   library(dplyr)
   require(data.table)
   require(stringdist, quietly = F) 
+  require(stringr)
   #require(tm,quietly=F)
-  #require(stringr)
   #library(plyr); 
 
   if(algorithm == "ml"){ 
@@ -492,7 +492,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 #'
 #' @examples
 #' 
-#' #' #Create synthetic data 
+#' #Create synthetic data 
 #' x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
 #' y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
 #' x <- data.frame("orgnames_x"=x_orgnames)

@@ -33,7 +33,7 @@ LinkIt can automatically process the alias text for each dataset. Users may spec
 }
 \examples{
 
-#' #Create synthetic data 
+#Create synthetic data 
 x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
 y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
 x <- data.frame("orgnames_x"=x_orgnames)

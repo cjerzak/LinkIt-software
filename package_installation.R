@@ -19,6 +19,21 @@ devtools::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
 library(LinkOrgs)
 
 {
+  ?LinkOrgs::LinkOrgs
+  #Create synthetic data 
+  x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
+  y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
+  x <- data.frame("orgnames_x"=x_orgnames)
+  y <- data.frame("orgnames_y"=y_orgnames)
+  
+  # Perform merge 
+  linkedOrgs <- LinkOrgs(x = x, 
+                         y = y, 
+                         by.x = "orgnames_x", 
+                         by.y = "orgnames_y")
+  
+  print( linkedOrgs )
+  
   
 }
 
