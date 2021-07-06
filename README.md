@@ -34,12 +34,12 @@ After creating these synthetic datasets, we're now ready to merge them!
 ``` 
 # perform merge 
 z_linked <- LinkOrgs(x  = x, 
-                        y =  y, 
-                        by.x = "orgnames_x", 
-                        by.y = "orgnames_y",
-                        MaxDist = 0.6, 
-                        algorithm = "bipartite", 
-                        DistanceMeasure = "jaccard")
+                     y =  y, 
+                     by.x = "orgnames_x", 
+                     by.y = "orgnames_y",
+                     MaxDist = 0.6, 
+                     algorithm = "bipartite", 
+                     DistanceMeasure = "jaccard")
 ```
 
 Using the package, we can also assess performance against a ground-truth merged dataset (if available). 
@@ -49,11 +49,11 @@ z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
 
 # Get performance matrix 
 PerformanceMatrix <- AssessMatchPerformance(x  = x, 
-                                             y =  y, 
-                                             by.x = "orgnames_x", 
-                                             by.y = "orgnames_y", 
-                                             z = z_linked, 
-                                             z_true = z_true)
+                                            y =  y, 
+                                            by.x = "orgnames_x", 
+                                            by.y = "orgnames_y", 
+                                            z = z_linked, 
+                                            z_true = z_true)
 ``` 
 
 
