@@ -74,11 +74,12 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     DistanceMeasure = "jaccard",
                     qgram = 2,
                    openBrowser = F,ReturnDecomposition = F){ 
-  library(plyr); library(dplyr)
-  require(tm,quietly=F)
+  library(dplyr)
   require(data.table)
   require(stringdist, quietly = F) 
-  require(stringr)
+  #require(tm,quietly=F)
+  #require(stringr)
+  #library(plyr); 
 
   if(algorithm == "ml"){ 
     #myCon = url("https://dl.dropboxusercontent.com/s/zyrbp9cj9s3g3wl/mlClust.Rdata?dl=0"); 
