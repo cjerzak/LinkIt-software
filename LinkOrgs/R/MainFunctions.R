@@ -74,7 +74,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     DistanceMeasure = "jaccard",
                     qgram = 2,
                    openBrowser = F,ReturnDecomposition = F){ 
-  library(dplyr)
+  library(plyr); library(dplyr)
   require(data.table)
   require(stringdist, quietly = F) 
   require(stringr)
@@ -238,7 +238,9 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       
       require(reticulate)
       try_chars2vec <- try(py_run_string('import chars2vec'),T)
-      if(class(try_chars2vec)=="try-error"){
+      Sys.sleep(5)
+      try_chars2vec <- try(py_run_string('import chars2vec'),T)
+      if(all(class(try_chars2vec)=="try-error")){
         stop("Please install chars2vec, tensorflow, and keras; see 
              https://github.com/IntuitionEngineeringTeam/chars2vec for details.")
       }
