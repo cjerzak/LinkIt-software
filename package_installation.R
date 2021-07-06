@@ -13,6 +13,7 @@ try(file.remove(sprintf("./%s.pdf",package_name)),T); system(sprintf("R CMD Rd2p
 
 #Install package
 devtools::install_github(sprintf("cjerzak/%s-software/%s",package_name,package_name))
+devtools::install_github("cjerzak/LinkOrgs-software/LinkOrgs")
 
 
 #Load in package to environment  
