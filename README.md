@@ -37,7 +37,7 @@ z_linked <- LinkOrgs(x  = x,
                         y =  y, 
                         by.x = "orgnames_x", 
                         by.y = "orgnames_y",
-                        MaxDist = 0.4, 
+                        MaxDist = 0.6, 
                         algorithm = "bipartite", 
                         DistanceMeasure = "jaccard")
 ```
