@@ -41,7 +41,7 @@
 #'
 #' - Set `ToLower` to `TRUE` to ignore case. (Default is `TRUE`)
 #'
-#' @example 
+#' @examples 
 #' 
 #' #Create synthetic data 
 #' x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
@@ -490,7 +490,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 #' 
 #' - Set `ToLower` to TRUE to ignore case. (Default is `TRUE`)
 #'
-#' @example
+#' @examples
 #' 
 #' #' #Create synthetic data 
 #' x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")

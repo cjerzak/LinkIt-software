@@ -31,3 +31,20 @@ LinkIt can automatically process the alias text for each dataset. Users may spec
 \item Set \code{ToLower} to TRUE to ignore case. (Default is \code{TRUE})
 }
 }
+\examples{
+
+#' #Create synthetic data 
+x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
+y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
+x <- data.frame("orgnames_x"=x_orgnames)
+y <- data.frame("orgnames_y"=y_orgnames)
+z <- data.frame("orgnames_x"=x_orgnames[1:2], "orgnames_y"=y_orgnames[1:2])
+z_true <- data.frame("orgnames_x"=x_orgnames, "orgnames_y"=y_orgnames)
+
+# Perform merge 
+linkedOrgs_fuzzy <- FastFuzzyMatch(x = x, 
+                       y = y, 
+                       by.x = "orgnames_x", 
+                       by.y = "orgnames_y")
+
+}
