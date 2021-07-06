@@ -36,7 +36,7 @@ After creating these synthetic datasets, we're now ready to merge them!
 linkedOrgs <- LinkOrgs(x  = x, 
                         y =  y, 
                         by.x = "orgnames_x", 
-                        by.y = "orgnames_y"
+                        by.y = "orgnames_y",
                         MaxDist = 0.4, 
                         algorithm = "bipartite", 
                         DistanceMeasure = "jaccard")
