@@ -33,7 +33,7 @@ After creating these synthetic datasets, we're now ready to merge them!
 
 ``` 
 # perform merge 
-linkedOrgs <- LinkOrgs(x  = x, 
+z_linked <- LinkOrgs(x  = x, 
                         y =  y, 
                         by.x = "orgnames_x", 
                         by.y = "orgnames_y",
@@ -52,7 +52,7 @@ PerformanceMatrix <- AssessMatchPerformance(x  = x,
                                              y =  y, 
                                              by.x = "orgnames_x", 
                                              by.y = "orgnames_y", 
-                                             z = z, 
+                                             z = z_linked, 
                                              z_true = z_true)
 ``` 
 
