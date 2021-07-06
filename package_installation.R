@@ -20,6 +20,8 @@ try(file.remove(sprintf("./%s.pdf",package_name)),T); system(sprintf("R CMD Rd2p
   library(LinkOrgs)
   
   ?LinkOrgs::LinkOrgs
+  ?LinkOrgs::AssessMatchPerformance
+  ?LinkOrgs::FastFuzzyMatch
   #Create synthetic data 
   x_orgnames <- c("apple","oracle","enron inc.","mcdonalds corporation")
   y_orgnames <- c("apple corp","oracle inc","enron","mcdonalds co")
