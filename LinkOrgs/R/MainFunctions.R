@@ -53,7 +53,8 @@
 #' linkedOrgs <- LinkOrgs(x = x, 
 #'                        y = y, 
 #'                        by.x = "orgnames_x", 
-#'                        by.y = "orgnames_y")
+#'                        by.y = "orgnames_y",
+#'                        MaxDist = 0.6)
 #'                        
 #' print( linkedOrgs )
 #'
@@ -75,10 +76,10 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                     qgram = 2,
                    openBrowser = F,ReturnDecomposition = F){ 
   library(plyr); library(dplyr)
-  require(data.table)
-  require(stringdist, quietly = F) 
-  require(stringr)
-  #require(tm,quietly=F)
+  library(data.table)
+  library(stringdist, quietly = F) 
+  library(stringr)
+  #library(tm,quietly=F)
   #library(plyr); 
 
   if(openBrowser == T){browser()}
@@ -212,7 +213,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
   x$UniversalMatchCol <- as.character(x[[by.x]]); y$UniversalMatchCol = as.character( y[[by.y]] )  
 
   #FAST MATCH --- DOESN'T WORK WITH NAs 
-  `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
+  `%fin%` <- function(x, table) {stopifnot(library(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
 
   # first, traditional fuzzy match 
   z_fuzzy <- try(as.data.frame(FastFuzzyMatch(x,  y,
@@ -237,7 +238,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       idf_values <- idf_values <- idf_values[which(names(idf_values) %fin% tmp_)]
       rm(tmp_)
       
-      require(reticulate)
+      library(reticulate)
       try_chars2vec <- try(py_run_string('import chars2vec'),T)
       Sys.sleep(5)
       try_chars2vec <- try(py_run_string('import chars2vec'),T)
@@ -289,7 +290,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
         if(key_ == "y"){ n_iters = nrow(y);match_pool <- x[[by.x]] }
 
         {
-          require("doMC",quietly=T);library(foreach)#library(doSNOW);
+          library("doMC",quietly=T);library(foreach)#library(doSNOW);
           ncl <- parallel::detectCores();
           print(sprintf("%s cores",ncl))
           doMC::registerDoMC(ncl)
@@ -321,7 +322,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       
       maxDocSearchThres = 25
       { 
-        require("foreach",quietly=T); require("doMC",quietly=T); library(parallel)
+        library("foreach",quietly=T); library("doMC",quietly=T); library(parallel)
         ncl <- 1; split_list <- list(1:n_iters)
         if(n_iters>50){
           ncl = parallel::detectCores()
@@ -518,7 +519,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
 FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_stringdist = T, onlyUFT = T, 
                            qgram =2, DistanceMeasure = "jaccard", MaxDist = 0.20,openBrowser=F,ReturnProgress=T){
-  require(stringdist, quietly = T) 
+  library(stringdist, quietly = T) 
   if(openBrowser == T){browser()}
   
   #WARNING: X SHOULD ALWAYS BE THE LARGER SET 
@@ -542,7 +543,7 @@ FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_str
   y_tri_index = trigram_index(y[[by.y]],"the.row")
   n_iters = max(nrow(x), nrow(y))
   { 
-    require("foreach",quietly=T); require("doMC",quietly=T)
+    library("foreach",quietly=T); library("doMC",quietly=T)
     ncl <- 1; split_list <- list(1:n_iters)
     if(n_iters>50){ 
       ncl = parallel::detectCores()
@@ -656,7 +657,7 @@ FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_str
 
 AssessMatchPerformance = function(x, y, z, z_true, by, by.x=by, by.y=by, openBrowser=F){ 
   if(openBrowser==T){browser()}
-  `%fin%` <- function(x, table) {stopifnot(require(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
+  `%fin%` <- function(x, table) {stopifnot(library(fastmatch));fmatch(x, table, nomatch = 0L) > 0L}
   x <- as.matrix(x);y <- as.matrix(y);z <- as.matrix(z);z_true <- as.matrix(z_true);
   totalCombs <- length( unique(x[,by.x]) ) * length( unique(y[,by.y]) )
   ResultsMatrix =  c(matrix(0,nrow=1,ncol=5) )
@@ -690,7 +691,7 @@ AssessMatchPerformance = function(x, y, z, z_true, by, by.x=by, by.y=by, openBro
 trigram_index <- function(phrase,phrasename='phrase.no',openBrowser=F){
   # Internal function 
   if(openBrowser==T){browser()}
-  require(plyr)
+  library(plyr)
   
   DT=data.table(phrase,phrase.no=1:length(phrase))
   t = DT[,.(phrase,phrase.no,phrase.length = nchar(phrase))][

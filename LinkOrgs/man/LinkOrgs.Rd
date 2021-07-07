@@ -49,7 +49,8 @@ y <- data.frame("orgnames_y"=y_orgnames)
 linkedOrgs <- LinkOrgs(x = x, 
                        y = y, 
                        by.x = "orgnames_x", 
-                       by.y = "orgnames_y")
+                       by.y = "orgnames_y",
+                       MaxDist = 0.6)
                        
 print( linkedOrgs )
 
