@@ -77,11 +77,9 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
                    openBrowser = F,ReturnDecomposition = F){ 
   library(plyr); library(dplyr)
   library(data.table)
-  library(stringdist, quietly = F) 
+  library(stringdist) 
   library(stringr)
-  #library(tm,quietly=F)
-  #library(plyr); 
-
+  
   if(openBrowser == T){browser()}
   
   if(algorithm == "ml"){ 
@@ -290,7 +288,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
         if(key_ == "y"){ n_iters = nrow(y);match_pool <- x[[by.x]] }
 
         {
-          library("doMC",quietly=T);library(foreach)#library(doSNOW);
+          library("doMC",quietly=T);library(foreach)
           ncl <- parallel::detectCores();
           print(sprintf("%s cores",ncl))
           doMC::registerDoMC(ncl)
@@ -322,7 +320,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
       
       maxDocSearchThres = 25
       { 
-        library("foreach",quietly=T); library("doMC",quietly=T); library(parallel)
+        library("foreach"); library("doMC"); library(parallel)
         ncl <- 1; split_list <- list(1:n_iters)
         if(n_iters>50){
           ncl = parallel::detectCores()
@@ -519,7 +517,7 @@ LinkOrgs <- function(x,y,by=NULL, by.x = NULL,by.y=NULL,
 
 FastFuzzyMatch <- function(x, y, by = NULL, by.x = NULL, by.y = NULL, return_stringdist = T, onlyUFT = T, 
                            qgram =2, DistanceMeasure = "jaccard", MaxDist = 0.20,openBrowser=F,ReturnProgress=T){
-  library(stringdist, quietly = T) 
+  library(stringdist) 
   if(openBrowser == T){browser()}
   
   #WARNING: X SHOULD ALWAYS BE THE LARGER SET 
